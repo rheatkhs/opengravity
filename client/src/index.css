@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@import "@xterm/xterm/css/xterm.css";
+
+/* ─── Design System Tokens ─── */
+@theme {
+  --color-bg-deep: #07070d;
+  --color-bg-base: #0a0a0f;
+  --color-bg-surface: #111118;
+  --color-bg-elevated: #181822;
+  --color-bg-hover: #1e1e2e;
+
+  --color-border-subtle: #1a1a28;
+  --color-border-default: #252538;
+  --color-border-active: #3f3f5c;
+
+  --color-accent-primary: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-accent-muted: #4f46e5;
+
+  --color-text-primary: #e4e4e7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-text-dimmed: #52525b;
+
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Global Reset ─── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar Styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-active);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 1.5px solid var(--color-accent-primary);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── xterm.js Overrides ─── */
+.xterm {
+  padding: 8px 12px;
+}
+
+.xterm-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 3px;
+}
+
+/* ─── CodeMirror Overrides ─── */
+.cm-editor {
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.cm-editor .cm-scroller {
+  font-family: var(--font-mono);
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-gutters {
+  border-right: 1px solid var(--color-border-subtle) !important;
+  background-color: var(--color-bg-surface) !important;
+}
+
+/* ─── Resizable Panel Handles ─── */
+[data-panel-group-direction="horizontal"] > [data-resize-handle-active],
+[data-panel-group-direction="horizontal"] > [data-resize-handle] {
+  width: 1px !important;
+  background: var(--color-border-subtle);
+  transition: background 150ms ease;
+}
+
+[data-panel-group-direction="horizontal"] > [data-resize-handle]:hover,
+[data-panel-group-direction="horizontal"] > [data-resize-handle-active] {
+  background: var(--color-accent-primary) !important;
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle-active],
+[data-panel-group-direction="vertical"] > [data-resize-handle] {
+  height: 1px !important;
+  background: var(--color-border-subtle);
+  transition: background 150ms ease;
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle]:hover,
+[data-panel-group-direction="vertical"] > [data-resize-handle-active] {
+  background: var(--color-accent-primary) !important;
+}
+
+/* ─── Utility Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 200ms var(--ease-out-expo) forwards;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
