@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FolderOpen, ChevronRight, ChevronDown, RefreshCw } from 'lucide-react';
+import { ChevronRight, ChevronDown, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { useFileStore } from '../../stores/file-store';
 import { useEditorStore } from '../../stores/editor-store';
 import { openDirectory, listDirectory, readFile, getFileIcon, type FileNode } from '../../lib/fs-access';
@@ -53,26 +53,33 @@ export default function FileExplorer() {
   }, [setTree, setLoading]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Explorer</span>
+    <div className="h-full flex flex-col select-none text-[11px]">
+      <div className="flex items-center justify-between px-3 h-9 shrink-0" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Explorer</span>
         <div className="flex items-center gap-1">
-          {rootName && <button onClick={handleRefresh} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }} title="Refresh"><RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} /></button>}
-          <button onClick={handleOpenFolder} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }} title="Open Folder"><FolderOpen size={12} /></button>
+          {rootName && (
+            <button onClick={handleRefresh} className="p-1 rounded text-zinc-500 hover:text-zinc-300 cursor-pointer" title="Refresh">
+              <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
+            </button>
+          )}
+          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 cursor-pointer" title="More Actions">
+            <MoreHorizontal size={12} />
+          </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto py-1">
+      <div className="flex-1 flex flex-col justify-start pt-6 px-4">
         {!rootName ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-            <FolderOpen size={28} style={{ color: 'var(--color-text-dimmed)' }} />
-            <button onClick={handleOpenFolder} className="text-xs px-3 py-1.5 rounded-md" style={{ backgroundColor: 'var(--color-accent-primary)', color: 'white' }}>Open Folder</button>
-            <p className="text-[10px] text-center" style={{ color: 'var(--color-text-dimmed)' }}>Select a project folder</p>
+          <div className="flex flex-col items-center justify-center w-full">
+            <button onClick={handleOpenFolder} 
+              className="w-full py-1.5 px-3 text-xs text-white bg-[#007acc] hover:bg-sky-600 rounded transition-colors text-center cursor-pointer font-medium shadow-sm">
+              Open Folder
+            </button>
           </div>
         ) : (
-          <>
-            <div className="px-3 py-1.5 text-[11px] font-semibold truncate" style={{ color: 'var(--color-text-muted)' }}>{rootName.toUpperCase()}</div>
+          <div className="overflow-y-auto w-full">
+            <div className="py-1 text-[10px] font-bold text-zinc-500 uppercase tracking-wider truncate mb-1">{rootName}</div>
             {tree.map((n) => <FileTreeNode key={n.path} node={n} />)}
-          </>
+          </div>
         )}
       </div>
     </div>
