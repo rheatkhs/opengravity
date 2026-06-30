@@ -157,15 +157,39 @@ body {
 }
 
 /* Horizontal splitter (vertical drag bar) */
-[aria-orientation="vertical"] {
+[data-separator][aria-orientation="vertical"] {
   width: 4px !important;
   cursor: col-resize;
 }
 
+/* Expand vertical handle hit area */
+[data-separator][aria-orientation="vertical"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  right: -5px;
+  cursor: col-resize;
+  z-index: 20;
+}
+
 /* Vertical splitter (horizontal drag bar) */
-[aria-orientation="horizontal"] {
+[data-separator][aria-orientation="horizontal"] {
   height: 4px !important;
   cursor: row-resize;
+}
+
+/* Expand horizontal handle hit area */
+[data-separator][aria-orientation="horizontal"]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5px;
+  bottom: -5px;
+  cursor: row-resize;
+  z-index: 20;
 }
 
 /* ─── Utility Animations ─── */

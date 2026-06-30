@@ -29,22 +29,22 @@ export default function App() {
       {/* Main Workspace */}
       <Group orientation="horizontal" className="flex-1">
         {/* Left: Sidebar */}
-        <Panel defaultSize={15} minSize={10} maxSize={25}>
+        <Panel defaultSize="20%" minSize="15%" maxSize="35%">
           <Sidebar />
         </Panel>
         <Separator />
 
         {/* Center: Editor + Terminal */}
-        <Panel defaultSize={60} minSize={30}>
+        <Panel defaultSize="55%" minSize="30%">
           <Group orientation="vertical">
             {/* Editor */}
-            <Panel defaultSize={65} minSize={20}>
+            <Panel defaultSize="65%" minSize="25%">
               <EditorPane />
             </Panel>
             <Separator />
 
             {/* Terminal */}
-            <Panel defaultSize={35} minSize={10} collapsible>
+            <Panel defaultSize="35%" minSize="15%" collapsible>
               <TerminalPane />
             </Panel>
           </Group>
@@ -52,7 +52,7 @@ export default function App() {
         <Separator />
 
         {/* Right: Agent Panel */}
-        <Panel defaultSize={25} minSize={15} maxSize={40}>
+        <Panel defaultSize="25%" minSize="20%" maxSize="45%">
           <AgentPanel />
         </Panel>
       </Group>
