@@ -1,6 +1,6 @@
 /** Agent state and event types */
 
-export type AgentProvider = 'anthropic' | 'openai' | 'ollama';
+export type AgentProvider = 'anthropic' | 'openai' | 'ollama' | 'openrouter' | 'custom';
 
 export interface AgentConfig {
   provider: AgentProvider;
@@ -61,5 +61,15 @@ export const PROVIDER_MODELS: Record<AgentProvider, string[]> = {
     'qwen3:latest',
     'deepseek-r1:latest',
     'codestral:latest',
+  ],
+  openrouter: [
+    'google/gemini-2.5-pro',
+    'google/gemini-2.5-flash',
+    'deepseek/deepseek-r1',
+    'anthropic/claude-3.5-sonnet',
+    'meta-llama/llama-3.3-70b-instruct',
+  ],
+  custom: [
+    'custom-model',
   ],
 };

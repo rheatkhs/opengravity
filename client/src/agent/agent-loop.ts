@@ -33,12 +33,26 @@ function createModel(provider: AgentProvider, apiKey: string, model: string, bas
       const openai = createOpenAI({ apiKey });
       return openai(model);
     }
+    case 'openrouter': {
+      const openrouter = createOpenAI({
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey,
+      });
+      return openrouter(model);
+    }
     case 'ollama': {
       const ollama = createOpenAI({
         baseURL: `${baseUrl || 'http://localhost:11434'}/v1`,
-        apiKey: 'ollama', // Ollama doesn't need a real key
+        apiKey: 'ollama',
       });
       return ollama(model);
+    }
+    case 'custom': {
+      const custom = createOpenAI({
+        baseURL: baseUrl || 'http://localhost:8000/v1',
+        apiKey: apiKey || 'custom',
+      });
+      return custom(model);
     }
   }
 }
@@ -71,7 +85,7 @@ export async function runAgentLoop(objective: string, abortSignal?: AbortSignal)
   const settings = useSettingsStore.getState();
 
   // Validate settings
-  if (settings.provider !== 'ollama' && !settings.apiKey) {
+  if (settings.provider !== 'ollama' && settings.provider !== 'custom' && !settings.apiKey) {
     store.setError('No API key configured. Set your key in Agent Config.');
     store.setStatus('error');
     return;

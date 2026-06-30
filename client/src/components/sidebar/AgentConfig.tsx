@@ -8,29 +8,54 @@ export default function AgentConfig() {
   const [showKey, setShowKey] = useState(false);
 
   const inputStyle = {
+    width: '100%',
+    paddingTop: '6px',
+    paddingBottom: '6px',
+    paddingLeft: '10px',
+    paddingRight: '10px',
+    fontSize: '12px',
     backgroundColor: 'var(--color-bg-elevated)',
     border: '1px solid var(--color-border-default)',
     color: 'var(--color-text-primary)',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '3px',
+    outline: 'none',
+  };
+
+  const labelStyle = {
+    fontSize: '10px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    display: 'block',
+    marginBottom: '6px',
+    color: 'var(--color-text-muted)'
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-          Agent Config
-        </span>
+    <div className="h-full flex flex-col select-none text-[11px]" style={{
+      paddingLeft: '12px',
+      paddingRight: '12px'
+    }}>
+      <div className="flex items-center justify-between h-9 px-4 shrink-0">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Agent Config</span>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      <div className="flex-1" style={{
+        overflowY: 'auto',
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
         {/* Provider */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Provider</label>
-          <div className="relative">
+          <label style={labelStyle}>Provider</label>
+          <div className="relative w-full">
             <select value={provider} onChange={(e) => { setProvider(e.target.value as AgentProvider); setModel(PROVIDER_MODELS[e.target.value as AgentProvider][0]); }}
-              className="w-full px-2.5 py-1.5 text-xs appearance-none pr-7" style={inputStyle}>
+              className="appearance-none cursor-pointer" style={{ ...inputStyle, paddingRight: '28px' }}>
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
+              <option value="openrouter">OpenRouter</option>
               <option value="ollama">Ollama (Local)</option>
+              <option value="custom">Custom Provider</option>
             </select>
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
           </div>
@@ -39,44 +64,53 @@ export default function AgentConfig() {
         {/* API Key */}
         {provider !== 'ollama' && (
           <div>
-            <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'var(--color-text-muted)' }}>API Key</label>
+            <label style={labelStyle}>API Key</label>
             <div className="relative">
               <Key size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-dimmed)' }} />
               <input type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)}
-                placeholder={`${provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}`}
-                className="w-full pl-7 pr-12 py-1.5 text-xs font-mono" style={inputStyle} />
-              <button onClick={() => setShowKey(!showKey)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px]"
-                style={{ color: 'var(--color-text-muted)' }}>{showKey ? 'Hide' : 'Show'}</button>
+                placeholder={provider === 'openrouter' ? 'sk-or-...' : provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
+                className="font-mono" style={{ ...inputStyle, paddingLeft: '28px', paddingRight: '48px' }} />
+              <button onClick={() => setShowKey(!showKey)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] cursor-pointer"
+                style={{ color: 'var(--color-text-muted)', border: 'none', background: 'none' }}>{showKey ? 'Hide' : 'Show'}</button>
             </div>
           </div>
         )}
 
-        {/* Base URL for Ollama */}
-        {provider === 'ollama' && (
+        {/* Base URL for Ollama and Custom */}
+        {(provider === 'ollama' || provider === 'custom') && (
           <div>
-            <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Base URL</label>
+            <label style={labelStyle}>Base URL</label>
             <input type="text" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs font-mono" style={inputStyle} />
+              placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'http://localhost:8000/v1'}
+              className="font-mono" style={inputStyle} />
           </div>
         )}
 
         {/* Model */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Model</label>
+          <label style={labelStyle}>Model</label>
           <div className="relative">
-            <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full px-2.5 py-1.5 text-xs appearance-none pr-7 font-mono" style={inputStyle}>
-              {PROVIDER_MODELS[provider].map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            {provider === 'custom' ? (
+              <input type="text" value={model} onChange={(e) => setModel(e.target.value)}
+                placeholder="e.g. mistral-medium"
+                className="font-mono" style={inputStyle} />
+            ) : (
+              <select value={model} onChange={(e) => setModel(e.target.value)} className="appearance-none cursor-pointer font-mono" style={{ ...inputStyle, paddingRight: '28px' }}>
+                {PROVIDER_MODELS[provider].map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            )}
+            {provider !== 'custom' && (
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            )}
           </div>
         </div>
 
         {/* Status */}
-        <div className="pt-2" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: apiKey || provider === 'ollama' ? 'var(--color-success)' : 'var(--color-text-dimmed)' }} />
+        <div style={{ paddingTop: '8px', borderTop: '1px solid var(--color-border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, backgroundColor: apiKey || provider === 'ollama' || provider === 'custom' ? 'var(--color-success)' : 'var(--color-text-dimmed)' }} />
             <span style={{ color: 'var(--color-text-muted)' }}>
-              {apiKey || provider === 'ollama' ? 'Ready' : 'Enter API key to start'}
+              {apiKey || provider === 'ollama' || provider === 'custom' ? 'Ready' : 'Enter API key to start'}
             </span>
           </div>
         </div>

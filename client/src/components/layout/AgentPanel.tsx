@@ -1,17 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { 
-  Square, 
-  Zap, 
-  Send, 
-  ShieldAlert, 
-  Check, 
-  Plus, 
-  History, 
-  MoreHorizontal, 
-  ArrowLeft, 
-  Mic, 
-  Sparkles, 
-  ChevronDown 
+import {
+  Square,
+  Zap,
+  Send,
+  ShieldAlert,
+  Check,
+  Plus,
+  History,
+  MoreHorizontal,
+  ArrowLeft,
+  Mic,
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 import { useAgentStore } from '../../stores/agent-store';
 import { runAgentLoop } from '../../agent/agent-loop';
@@ -60,125 +60,295 @@ export default function AgentPanel() {
   );
 
   return (
-    <div className="h-full flex flex-col overflow-hidden text-[11px]" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      overflow: 'hidden',
+      fontSize: '11px',
+      backgroundColor: 'var(--color-bg-surface)'
+    }}>
       {/* VS Code Panel Header */}
-      <div className="px-3 py-2 shrink-0 flex items-center justify-between select-none" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <span className="font-bold text-zinc-100 uppercase tracking-wide">Antigravity Chat</span>
-        
-        <div className="flex items-center gap-2 text-zinc-400">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        height: '36px',
+        flexShrink: 0,
+        userSelect: 'none',
+        borderBottom: '1px solid var(--color-border-subtle)',
+        backgroundColor: 'var(--color-bg-surface)'
+      }}>
+        <span style={{ fontWeight: 'bold', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opengravity Chat</span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Status Indicator */}
-          <span className="flex items-center gap-1 mr-1 text-[10px]">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColors[status] }} />
-            <span className="text-[9px] uppercase tracking-wider font-mono font-medium" style={{ color: statusColors[status] }}>{status}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px', fontSize: '10px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: statusColors[status] }} />
+            <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'monospace', fontWeight: '500', color: statusColors[status] }}>{status}</span>
           </span>
-          <button className="p-1 hover:text-white rounded cursor-pointer transition-colors" title="New Session">
+          <button className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '3px', border: 'none', backgroundColor: 'transparent', color: 'var(--color-text-dimmed)' }} title="New Session">
             <Plus size={13} />
           </button>
-          <button className="p-1 hover:text-white rounded cursor-pointer transition-colors" title="History">
+          <button className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '3px', border: 'none', backgroundColor: 'transparent', color: 'var(--color-text-dimmed)' }} title="History">
             <History size={13} />
           </button>
-          <button className="p-1 hover:text-white rounded cursor-pointer transition-colors" title="More Actions">
+          <button className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '3px', border: 'none', backgroundColor: 'transparent', color: 'var(--color-text-dimmed)' }} title="More Actions">
             <MoreHorizontal size={13} />
           </button>
         </div>
       </div>
 
       {/* Changes Header Section */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center justify-between select-none" 
-        style={{ backgroundColor: 'var(--color-bg-deep)', borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
-          <ArrowLeft size={11} className="cursor-pointer hover:text-white" />
-          <span>{editedFiles.length} Files With Changes</span>
+      {editedFiles.length > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          height: '28px',
+          flexShrink: 0,
+          userSelect: 'none',
+          backgroundColor: 'var(--color-bg-deep)',
+          borderBottom: '1px solid var(--color-border-subtle)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: '500' }}>
+            <ArrowLeft size={11} className="cursor-pointer hover:text-[var(--color-text-primary)] transition-colors" />
+            <span>{editedFiles.length} file{editedFiles.length !== 1 ? 's' : ''} modified</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button className="hover:text-[var(--color-text-primary)] transition-colors cursor-pointer"
+              style={{ fontSize: '10px', color: 'var(--color-text-muted)', border: 'none', backgroundColor: 'transparent', padding: 0 }}>Reject all</button>
+            <button className="hover:bg-[var(--color-accent-hover)] transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--color-accent-primary)',
+                color: 'white',
+                paddingTop: '2px',
+                paddingBottom: '2px',
+                paddingLeft: '8px',
+                paddingRight: '8px',
+                borderRadius: '3px',
+                fontSize: '10px',
+                fontWeight: '600',
+                border: 'none'
+              }}>Accept all</button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="text-[10px] text-zinc-500 hover:text-zinc-300 cursor-pointer transition-colors">Reject all</button>
-          <button className="bg-[#007acc] text-white px-2 py-0.5 rounded text-[10px] font-semibold hover:bg-sky-600 transition-colors cursor-pointer">Accept all</button>
-        </div>
-      </div>
+      )}
 
       {/* Goal details if active */}
       {objective && (
-        <div className="px-3 py-2 shrink-0 select-none border-b border-zinc-800" style={{ backgroundColor: 'var(--color-bg-deep)' }}>
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">Active Objective</span>
-          <p className="text-[10px] text-zinc-300 leading-normal">{objective}</p>
+        <div style={{
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          paddingTop: '8px',
+          paddingBottom: '8px',
+          flexShrink: 0,
+          userSelect: 'none',
+          backgroundColor: 'var(--color-bg-deep)',
+          borderBottom: '1px solid var(--color-border-subtle)'
+        }}>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '4px' }}>Active Objective</span>
+          <p style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', lineHeight: '1.5', margin: 0 }}>{objective}</p>
         </div>
       )}
 
       {/* Progress metrics */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center justify-between select-none text-[9px] border-b border-zinc-800 text-zinc-500">
-        <div className="flex items-center gap-1.5">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        paddingTop: '6px',
+        paddingBottom: '6px',
+        flexShrink: 0,
+        userSelect: 'none',
+        fontSize: '9px',
+        backgroundColor: 'var(--color-bg-deep)',
+        borderBottom: '1px solid var(--color-border-subtle)',
+        color: 'var(--color-text-dimmed)',
+        fontWeight: 'bold',
+        letterSpacing: '0.05em'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span>STEPS:</span>
-          <span className="font-mono text-zinc-400">{currentStep} / {maxSteps}</span>
+          <span style={{ fontFamily: 'monospace', color: 'var(--color-text-secondary)', fontSize: '10px' }}>{currentStep} / {maxSteps}</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span>BUDGET:</span>
-          <span className="font-mono text-zinc-400">{consecutiveCommands} / {commandBudget}</span>
+          <span style={{ fontFamily: 'monospace', color: 'var(--color-text-secondary)', fontSize: '10px' }}>{consecutiveCommands} / {commandBudget}</span>
         </div>
       </div>
 
       {/* Tool Call Stream / Messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      <div ref={scrollRef} style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px'
+      }}>
         {toolCalls.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 opacity-30 select-none">
-            <Zap size={22} style={{ color: 'var(--color-text-dimmed)' }} />
-            <p className="text-[10px] tracking-wide" style={{ color: 'var(--color-text-dimmed)' }}>AGENT PIPELINE INACTIVE</p>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            gap: '8px',
+            opacity: 0.25,
+            userSelect: 'none'
+          }}>
+            <Zap size={20} style={{ color: 'var(--color-text-dimmed)' }} />
+            <p style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '0.05em', color: 'var(--color-text-dimmed)' }}>AGENT PIPELINE INACTIVE</p>
           </div>
         ) : (
           toolCalls.map((tc) => (
-            <div key={tc.id} className="p-2.5 rounded border text-[11px] transition-all duration-150 animate-fade-in"
+            <div key={tc.id} className="animate-fade-in"
               style={{
+                padding: '10px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                border: '1px solid',
                 backgroundColor: 'var(--color-bg-elevated)',
-                borderColor: tc.status === 'error' ? 'var(--color-error)' : 'var(--color-border-subtle)'
+                borderColor: tc.status === 'error' ? 'var(--color-error)' : 'var(--color-border-subtle)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                transition: 'all 150ms ease'
               }}>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
                   backgroundColor: tc.status === 'success' ? 'var(--color-success)' : tc.status === 'error' ? 'var(--color-error)' : tc.status === 'running' ? 'var(--color-warning)' : 'var(--color-text-dimmed)'
                 }} />
-                <span className="font-mono font-semibold text-zinc-200" style={{ color: 'var(--color-text-primary)' }}>{tc.toolName}</span>
-                {tc.duration && <span className="ml-auto text-[9px] font-mono text-zinc-500">{tc.duration}ms</span>}
+                <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--color-text-primary)' }}>{tc.toolName}</span>
+                {tc.duration && <span style={{ marginLeft: 'auto', fontSize: '9px', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>{tc.duration}ms</span>}
               </div>
-              
+
               {tc.args && (
-                <div className="font-mono text-[9px] mt-1 p-1 rounded bg-zinc-950 text-zinc-500">
+                <div style={{
+                  fontFamily: 'monospace',
+                  fontSize: '9px',
+                  marginTop: '6px',
+                  padding: '6px',
+                  borderRadius: '3px',
+                  backgroundColor: 'var(--color-bg-deep)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border-subtle)',
+                  overflowX: 'auto'
+                }}>
                   {JSON.stringify(tc.args, null, 1)}
                 </div>
               )}
 
               {tc.result && (
-                <pre className="text-[9px] mt-1.5 p-1 rounded overflow-x-auto whitespace-pre-wrap max-h-24 border bg-zinc-950 border-zinc-800 text-emerald-400">
+                <pre style={{
+                  fontFamily: 'monospace',
+                  fontSize: '9px',
+                  marginTop: '6px',
+                  padding: '6px',
+                  borderRadius: '3px',
+                  overflowX: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: '96px',
+                  border: '1px solid var(--color-border-subtle)',
+                  backgroundColor: 'var(--color-bg-deep)',
+                  color: '#34d399'
+                }}>
                   {tc.result}
                 </pre>
               )}
-              {tc.error && <p className="text-[9px] mt-1.5 font-medium text-red-400">{tc.error}</p>}
+              {tc.error && <p style={{ fontSize: '9px', marginTop: '6px', fontWeight: '500', color: 'var(--color-error)' }}>{tc.error}</p>}
             </div>
           ))
         )}
       </div>
 
       {/* Bottom Action Area */}
-      <div className="p-3 shrink-0" style={{ borderTop: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
+      <div style={{
+        padding: '12px',
+        flexShrink: 0,
+        borderTop: '1px solid var(--color-border-subtle)',
+        backgroundColor: 'var(--color-bg-surface)'
+      }}>
         {status === 'paused' && resumeHandler ? (
-          <div className="flex flex-col gap-2 animate-fade-in p-2 rounded border border-amber-600/50 bg-amber-950/20">
-            <div className="flex items-center gap-1.5 text-amber-500">
+          <div className="animate-fade-in" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '10px',
+            borderRadius: '6px',
+            border: '1px solid rgba(230, 140, 10, 0.3)',
+            backgroundColor: 'rgba(230, 140, 10, 0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-warning)' }}>
               <ShieldAlert size={14} />
-              <span className="text-[9px] font-semibold uppercase tracking-wider font-mono">Safety Halt Triggered</span>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'monospace' }}>Safety Halt Triggered</span>
             </div>
-            <p className="text-[10px] leading-relaxed text-zinc-400">
+            <p style={{ fontSize: '10px', lineHeight: '1.5', color: 'var(--color-text-secondary)', margin: 0 }}>
               The agent has run {consecutiveCommands} consecutive commands. Click approve to authorize the next commands.
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              <button onClick={() => resumeHandler()}
-                className="flex-1 py-1 px-3 rounded text-[11px] font-semibold text-white flex items-center justify-center gap-1 bg-[#007acc] hover:bg-sky-600 transition-colors cursor-pointer">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <button onClick={() => resumeHandler()} className="hover:bg-[var(--color-accent-hover)] transition-colors cursor-pointer"
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  paddingTop: '4px',
+                  paddingBottom: '4px',
+                  borderRadius: '3px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  color: 'white',
+                  backgroundColor: 'var(--color-accent-primary)',
+                  border: 'none'
+                }}>
                 <Check size={12} /> Approve & Resume
               </button>
-              <button onClick={handleStop}
-                className="py-1 px-3 rounded text-[11px] font-semibold border flex items-center justify-center gap-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer">
+              <button onClick={handleStop} className="hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  paddingTop: '4px',
+                  paddingBottom: '4px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px',
+                  borderRadius: '3px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--color-border-default)'
+                }}>
                 Abort
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col border border-zinc-700 rounded-lg bg-zinc-900 p-2 gap-2 relative">
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            border: '1px solid var(--color-border-default)',
+            borderRadius: '6px',
+            backgroundColor: 'var(--color-bg-deep)',
+            padding: '8px',
+            gap: '8px',
+            position: 'relative'
+          }}>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -191,44 +361,78 @@ export default function AgentPanel() {
               disabled={status === 'running'}
               placeholder={status === 'running' ? "Agent processing..." : "Ask anything..."}
               rows={2}
-              className="w-full text-xs bg-transparent text-zinc-200 focus:outline-none resize-none placeholder-zinc-600 leading-relaxed font-sans"
+              style={{
+                width: '100%',
+                fontSize: '12px',
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-primary)',
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                lineHeight: '1.5',
+                fontFamily: 'var(--font-sans)'
+              }}
             />
-            
+
             {/* Sub-toolbar inside the input container */}
-            <div className="flex items-center justify-between select-none">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}>
               {/* Left tools */}
-              <div className="flex items-center gap-1.5">
-                <button className="p-1 text-zinc-500 hover:text-zinc-300 rounded hover:bg-zinc-800 transition-colors cursor-pointer">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px', borderRadius: '3px', border: 'none', backgroundColor: 'transparent', color: 'var(--color-text-dimmed)' }}>
                   <Plus size={13} />
                 </button>
                 {/* Fast speed pill */}
-                <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[8px] font-semibold border border-zinc-700">
-                  <Sparkles size={8} className="text-zinc-400" />
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  paddingLeft: '5px',
+                  paddingRight: '5px',
+                  paddingTop: '1px',
+                  paddingBottom: '1px',
+                  borderRadius: '3px',
+                  backgroundColor: 'var(--color-bg-hover)',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '8px',
+                  fontWeight: '600',
+                  border: '1px solid var(--color-border-subtle)'
+                }}>
+                  <Sparkles size={8} style={{ color: 'var(--color-text-muted)' }} />
                   <span>Fast</span>
                 </div>
                 {/* Model dropdown */}
-                <div className="flex items-center gap-1 text-[9px] text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer pl-1">
+                <div className="hover:text-[var(--color-text-primary)] transition-colors cursor-pointer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '9px', color: 'var(--color-text-muted)', paddingLeft: '4px' }}>
                   <span>Gemini 3.1 Flash Lite</span>
                   <ChevronDown size={8} />
                 </div>
               </div>
-              
+
               {/* Right tools */}
-              <div className="flex items-center gap-1">
-                <button className="p-1 text-zinc-500 hover:text-zinc-300 rounded hover:bg-zinc-800 transition-colors cursor-pointer">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px', borderRadius: '3px', border: 'none', backgroundColor: 'transparent', color: 'var(--color-text-dimmed)' }}>
                   <Mic size={13} />
                 </button>
                 {status === 'running' ? (
-                  <button onClick={handleStop} title="Abort Mission"
-                    className="p-1 rounded bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-colors cursor-pointer">
+                  <button onClick={handleStop} title="Abort Mission" className="hover:bg-red-500 transition-colors cursor-pointer"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', backgroundColor: 'var(--color-error)', color: 'white' }}>
                     <Square size={11} fill="currentColor" />
                   </button>
                 ) : (
                   <button onClick={handleSubmit} title="Send Message"
                     disabled={!input.trim()}
-                    className="p-1 rounded flex items-center justify-center transition-colors cursor-pointer"
+                    className="transition-colors cursor-pointer"
                     style={{
-                      backgroundColor: input.trim() ? '#007acc' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '3px',
+                      border: 'none',
+                      backgroundColor: input.trim() ? 'var(--color-accent-primary)' : 'transparent',
                       color: input.trim() ? 'white' : 'var(--color-text-dimmed)'
                     }}>
                     <Send size={11} />

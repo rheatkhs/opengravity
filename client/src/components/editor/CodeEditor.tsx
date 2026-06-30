@@ -12,7 +12,7 @@ import { json } from '@codemirror/lang-json';
 import { python } from '@codemirror/lang-python';
 import { markdown } from '@codemirror/lang-markdown';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { Cloud } from 'lucide-react';
+import { Code2 } from 'lucide-react';
 import { useEditorStore } from '../../stores/editor-store';
 import { writeFile } from '../../lib/fs-access';
 
@@ -140,15 +140,79 @@ export default function CodeEditor() {
 
   if (!activeTab) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-        <div className="text-center animate-fade-in flex flex-col items-center">
-          <div className="mb-4 p-3 rounded-full opacity-20" style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-default)' }}>
-            <Cloud size={32} style={{ color: 'var(--color-accent-primary)' }} />
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        background: 'radial-gradient(circle at center, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
+        userSelect: 'none'
+      }}>
+        <div className="animate-fade-in" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '32px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            boxShadow: '0 0 24px rgba(99, 102, 241, 0.12)',
+            marginBottom: '20px'
+          }}>
+            <Code2 size={24} style={{ color: 'var(--color-accent-primary)' }} />
           </div>
-          <p className="text-[var(--color-text-secondary)] text-sm font-medium">Open a file to start editing</p>
-          <p className="text-[var(--color-text-muted)] text-xs mt-1.5 max-w-[240px] leading-relaxed">
-            Use the file explorer in the left sidebar to open or browse files in your local workspace.
+          <p style={{
+            color: 'var(--color-text-primary)',
+            fontSize: '13.5px',
+            fontWeight: 600,
+            letterSpacing: '-0.01em'
+          }}>Open a file to start editing</p>
+          <p style={{
+            color: 'var(--color-text-muted)',
+            fontSize: '11.5px',
+            marginTop: '8px',
+            maxWidth: '280px',
+            lineHeight: '1.6'
+          }}>
+            Select a file from the explorer sidebar, or use the quick access shortcuts below.
           </p>
+
+          <div style={{
+            marginTop: '28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border-subtle)',
+            fontSize: '11px',
+            color: 'var(--color-text-secondary)',
+            width: '260px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Search Files</span>
+              <div style={{ display: 'flex', gap: '3px' }}>
+                <kbd style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border-default)', padding: '2px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'monospace', color: 'var(--color-text-primary)' }}>Ctrl</kbd>
+                <kbd style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border-default)', padding: '2px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'monospace', color: 'var(--color-text-primary)' }}>P</kbd>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Show Explorer</span>
+              <div style={{ display: 'flex', gap: '3px' }}>
+                <kbd style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border-default)', padding: '2px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'monospace', color: 'var(--color-text-primary)' }}>Ctrl</kbd>
+                <kbd style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border-default)', padding: '2px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'monospace', color: 'var(--color-text-primary)' }}>B</kbd>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

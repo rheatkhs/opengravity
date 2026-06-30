@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useAgentStore } from '../../stores/agent-store';
+import { RefreshCw } from 'lucide-react';
 
 export default function ThoughtLog() {
   const thoughts = useAgentStore((s) => s.thoughts);
@@ -19,11 +20,17 @@ export default function ThoughtLog() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-          Thought Log
-        </span>
+    <div className="h-full flex flex-col select-none text-[11px]" style={{
+      paddingLeft: '12px',
+      paddingRight: '12px'
+    }}>
+      <div className="flex items-center justify-between h-9 px-4 shrink-0">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Thought Log</span>
+        <div className="flex items-center gap-1">
+          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="Clear">
+            <RefreshCw size={12} />
+          </button>
+        </div>
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-2 space-y-1.5">
         {thoughts.length === 0 ? (

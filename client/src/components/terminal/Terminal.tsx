@@ -14,6 +14,7 @@ export default function TerminalComponent() {
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const statusRef = useRef<TerminalConnectionStatus>({ connected: false, error: null });
   const daemonUrl = useSettingsStore((s) => s.daemonUrl);
 
@@ -46,7 +47,10 @@ export default function TerminalComponent() {
         term.write('\r\n\x1b[33m● Disconnected from PTY daemon\x1b[0m\r\n');
 
         // Auto-reconnect after 2s
-        setTimeout(() => {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        reconnectTimeoutRef.current = setTimeout(() => {
           if (terminalRef.current) {
             connectWebSocket(terminalRef.current);
           }
@@ -73,12 +77,12 @@ export default function TerminalComponent() {
       cursorBlink: true,
       cursorStyle: 'bar',
       theme: {
-        background: '#0a0a0f',
+        background: '#000',
         foreground: '#e4e4e7',
         cursor: '#6366f1',
         cursorAccent: '#0a0a0f',
         selectionBackground: 'rgba(99, 102, 241, 0.3)',
-        black: '#09090b',
+        black: '#0a0a0f',
         red: '#ef4444',
         green: '#22c55e',
         yellow: '#eab308',
@@ -132,8 +136,14 @@ export default function TerminalComponent() {
     connectWebSocket(term);
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       resizeObserver.disconnect();
-      wsRef.current?.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // Prevent triggering auto-reconnect on deliberate close
+        wsRef.current.close();
+      }
       term.dispose();
     };
   }, [connectWebSocket]);
@@ -141,8 +151,7 @@ export default function TerminalComponent() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
-      style={{ backgroundColor: '#0a0a0f' }}
+      style={{ width: '100%', height: '100%', backgroundColor: '#0a0a0f' }}
     />
   );
 }

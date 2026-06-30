@@ -20,12 +20,20 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
   return (
     <div>
       <button onClick={handleClick}
-        className="flex items-center gap-1 w-full px-2 py-[3px] text-left text-xs hover:bg-[var(--color-bg-hover)] rounded-sm"
-        style={{ paddingLeft: `${depth * 14 + 8}px`, color: 'var(--color-text-secondary)' }}>
+        className="flex items-center gap-1.5 w-full py-[4px] text-left text-xs hover:bg-[var(--color-bg-hover)] rounded-sm cursor-pointer transition-colors"
+        style={{ paddingLeft: `${depth * 12 + 8}px`, color: 'var(--color-text-secondary)' }}>
         {node.kind === 'directory' ? (
-          <>{isOpen ? <ChevronDown size={12} className="shrink-0 opacity-50" /> : <ChevronRight size={12} className="shrink-0 opacity-50" />}<span className="shrink-0">📁</span></>
-        ) : (<><span className="w-3 shrink-0" /><span className="shrink-0 text-[10px]">{getFileIcon(node.extension || '')}</span></>)}
-        <span className="truncate font-mono">{node.name}</span>
+          <span className="flex items-center gap-1 shrink-0">
+            {isOpen ? <ChevronDown size={11} className="opacity-60" /> : <ChevronRight size={11} className="opacity-60" />}
+            <span className="text-[12px] opacity-80">📁</span>
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 shrink-0">
+            <span className="w-3" />
+            <span className="text-[11px] opacity-90">{getFileIcon(node.extension || '')}</span>
+          </span>
+        )}
+        <span className="truncate font-sans text-[11.5px]">{node.name}</span>
       </button>
       {node.kind === 'directory' && isOpen && node.children?.map((c) => <FileTreeNode key={c.path} node={c} depth={depth + 1} />)}
     </div>
@@ -53,31 +61,42 @@ export default function FileExplorer() {
   }, [setTree, setLoading]);
 
   return (
-    <div className="h-full flex flex-col select-none text-[11px]">
-      <div className="flex items-center justify-between px-3 h-9 shrink-0" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Explorer</span>
+    <div className="h-full flex flex-col select-none text-[11px]" style={{
+      paddingLeft: '12px',
+      paddingRight: '12px'
+    }}>
+      <div className="flex items-center justify-between h-9 px-4 shrink-0">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Explorer</span>
         <div className="flex items-center gap-1">
           {rootName && (
-            <button onClick={handleRefresh} className="p-1 rounded text-zinc-500 hover:text-zinc-300 cursor-pointer" title="Refresh">
+            <button onClick={handleRefresh} className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="Refresh">
               <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
             </button>
           )}
-          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 cursor-pointer" title="More Actions">
+          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="More Actions">
             <MoreHorizontal size={12} />
           </button>
         </div>
       </div>
-      <div className="flex-1 flex flex-col justify-start pt-6 px-4">
+      <div className="flex-1 flex flex-col justify-start p-4">
         {!rootName ? (
-          <div className="flex flex-col items-center justify-center w-full">
-            <button onClick={handleOpenFolder} 
-              className="w-full py-1.5 px-3 text-xs text-white bg-[#007acc] hover:bg-sky-600 rounded transition-colors text-center cursor-pointer font-medium shadow-sm">
+          <div className="flex flex-col gap-3 py-4 select-none">
+            <p className="text-xs text-[var(--color-text-secondary)] text-center leading-relaxed">
+              You have not yet opened a workspace folder.
+            </p>
+            <button onClick={handleOpenFolder}
+              className="w-full text-xs text-white bg-[#007acc] hover:bg-[#1f8ad2] rounded-[3px] transition-colors text-center cursor-pointer font-semibold shadow-sm" style={{
+                paddingTop: '8px',
+                paddingBottom: '8px'
+              }}>
               Open Folder
             </button>
           </div>
         ) : (
           <div className="overflow-y-auto w-full">
-            <div className="py-1 text-[10px] font-bold text-zinc-500 uppercase tracking-wider truncate mb-1">{rootName}</div>
+            <div className="py-1.5 px-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate mb-1 border-b border-[var(--color-border-subtle)]/30">
+              {rootName}
+            </div>
             {tree.map((n) => <FileTreeNode key={n.path} node={n} />)}
           </div>
         )}
