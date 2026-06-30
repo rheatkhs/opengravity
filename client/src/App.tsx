@@ -26,7 +26,7 @@ export default function App() {
       </header>
 
       {/* Main Workspace */}
-      <Group direction="horizontal" className="flex-1">
+      <Group orientation="horizontal" className="flex-1">
         {/* Left: Sidebar */}
         <Panel defaultSize={15} minSize={10} maxSize={25}>
           <Sidebar />
@@ -35,7 +35,7 @@ export default function App() {
 
         {/* Center: Editor + Terminal */}
         <Panel defaultSize={60} minSize={30}>
-          <Group direction="vertical">
+          <Group orientation="vertical">
             {/* Editor */}
             <Panel defaultSize={65} minSize={20}>
               <EditorPane />
