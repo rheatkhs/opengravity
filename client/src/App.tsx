@@ -1,4 +1,4 @@
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, Group, Separator } from 'react-resizable-panels';
 import Sidebar from './components/layout/Sidebar';
 import EditorPane from './components/layout/EditorPane';
 import TerminalPane from './components/layout/TerminalPane';
@@ -26,35 +26,35 @@ export default function App() {
       </header>
 
       {/* Main Workspace */}
-      <PanelGroup direction="horizontal" className="flex-1">
+      <Group direction="horizontal" className="flex-1">
         {/* Left: Sidebar */}
         <Panel defaultSize={15} minSize={10} maxSize={25}>
           <Sidebar />
         </Panel>
-        <PanelResizeHandle />
+        <Separator />
 
         {/* Center: Editor + Terminal */}
         <Panel defaultSize={60} minSize={30}>
-          <PanelGroup direction="vertical">
+          <Group direction="vertical">
             {/* Editor */}
             <Panel defaultSize={65} minSize={20}>
               <EditorPane />
             </Panel>
-            <PanelResizeHandle />
+            <Separator />
 
             {/* Terminal */}
             <Panel defaultSize={35} minSize={10} collapsible>
               <TerminalPane />
             </Panel>
-          </PanelGroup>
+          </Group>
         </Panel>
-        <PanelResizeHandle />
+        <Separator />
 
         {/* Right: Agent Panel */}
         <Panel defaultSize={25} minSize={15} maxSize={40}>
           <AgentPanel />
         </Panel>
-      </PanelGroup>
+      </Group>
     </div>
   );
 }
