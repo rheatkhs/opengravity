@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
 import { Play, Square, Zap, Send } from 'lucide-react';
 import { useAgentStore } from '../../stores/agent-store';
+import { runAgentLoop } from '../../agent/agent-loop';
 
 export default function AgentPanel() {
   const { status, objective, currentStep, maxSteps, consecutiveCommands, commandBudget, toolCalls } = useAgentStore();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const statusColors: Record<string, string> = {
     idle: 'var(--color-text-dimmed)',
@@ -17,10 +19,15 @@ export default function AgentPanel() {
 
   const handleSubmit = () => {
     if (!input.trim()) return;
-    useAgentStore.getState().setObjective(input.trim());
-    useAgentStore.getState().setStatus('running');
+    const objective = input.trim();
     setInput('');
-    // Agent loop will be triggered by Phase 3
+    abortRef.current = new AbortController();
+    runAgentLoop(objective, abortRef.current.signal);
+  };
+
+  const handleStop = () => {
+    abortRef.current?.abort();
+    useAgentStore.getState().setStatus('idle');
   };
 
   return (
@@ -98,7 +105,7 @@ export default function AgentPanel() {
             className="flex-1 px-2.5 py-1.5 text-xs rounded-md"
             style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-default)', color: 'var(--color-text-primary)' }} />
           {status === 'running' ? (
-            <button onClick={() => useAgentStore.getState().setStatus('idle')} className="p-1.5 rounded-md"
+            <button onClick={handleStop} className="p-1.5 rounded-md"
               style={{ backgroundColor: 'var(--color-error)', color: 'white' }}><Square size={14} /></button>
           ) : (
             <button onClick={handleSubmit} className="p-1.5 rounded-md"
