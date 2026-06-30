@@ -11,6 +11,7 @@ interface AgentStore {
   thoughts: ThoughtEntry[];
   toolCalls: ToolCallEntry[];
   error: string | null;
+  resumeHandler: (() => void) | null;
 
   setStatus: (status: AgentStatus) => void;
   setObjective: (objective: string) => void;
@@ -21,6 +22,7 @@ interface AgentStore {
   addToolCall: (toolCall: ToolCallEntry) => void;
   updateToolCall: (id: string, update: Partial<ToolCallEntry>) => void;
   setError: (error: string | null) => void;
+  setResumeHandler: (handler: (() => void) | null) => void;
   reset: () => void;
 }
 
@@ -34,6 +36,7 @@ const initialState = {
   thoughts: [] as ThoughtEntry[],
   toolCalls: [] as ToolCallEntry[],
   error: null as string | null,
+  resumeHandler: null as (() => void) | null,
 };
 
 export const useAgentStore = create<AgentStore>((set) => ({
@@ -51,5 +54,6 @@ export const useAgentStore = create<AgentStore>((set) => ({
       toolCalls: s.toolCalls.map((tc) => (tc.id === id ? { ...tc, ...update } : tc)),
     })),
   setError: (error) => set({ error }),
+  setResumeHandler: (resumeHandler) => set({ resumeHandler }),
   reset: () => set(initialState),
 }));

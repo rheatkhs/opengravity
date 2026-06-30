@@ -19,7 +19,7 @@ let rootHandle: FileSystemDirectoryHandle | null = null;
  */
 export async function openDirectory(): Promise<FileSystemDirectoryHandle | null> {
   try {
-    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const handle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
     rootHandle = handle;
     return handle;
   } catch (err) {

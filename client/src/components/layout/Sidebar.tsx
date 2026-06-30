@@ -18,22 +18,30 @@ export default function Sidebar() {
   return (
     <div className="h-full flex" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
       {/* Icon rail */}
-      <div className="flex flex-col items-center py-2 gap-1 w-10 shrink-0"
-        style={{ borderRight: '1px solid var(--color-border-subtle)' }}>
-        {tabs.map(({ id, icon: Icon, label }) => (
-          <button key={id} onClick={() => setActiveTab(id)} title={label}
-            className="p-2 rounded-md transition-colors duration-150"
-            style={{
-              color: activeTab === id ? 'var(--color-text-primary)' : 'var(--color-text-dimmed)',
-              backgroundColor: activeTab === id ? 'var(--color-bg-hover)' : 'transparent',
-            }}>
-            <Icon size={16} />
-          </button>
-        ))}
+      <div className="flex flex-col items-center py-3 gap-2 w-12 shrink-0 select-none"
+        style={{ borderRight: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-bg-deep)' }}>
+        {tabs.map(({ id, icon: Icon, label }) => {
+          const isActive = activeTab === id;
+          return (
+            <button key={id} onClick={() => setActiveTab(id)} title={label}
+              className="relative p-2.5 rounded-lg transition-all duration-200 group hover:scale-105"
+              style={{
+                color: isActive ? 'var(--color-accent-primary)' : 'var(--color-text-dimmed)',
+                backgroundColor: isActive ? 'var(--color-bg-surface)' : 'transparent',
+              }}>
+              {/* Active Tab Left Border Accent Indicator */}
+              {isActive && (
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r"
+                  style={{ backgroundColor: 'var(--color-accent-primary)' }} />
+              )}
+              <Icon size={18} className="transition-transform duration-200 group-hover:opacity-100" style={{ opacity: isActive ? 1 : 0.65 }} />
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
         {activeTab === 'files' && <FileExplorer />}
         {activeTab === 'config' && <AgentConfig />}
         {activeTab === 'thoughts' && <ThoughtLog />}

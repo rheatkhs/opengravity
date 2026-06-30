@@ -40,7 +40,7 @@ export default function ThoughtLog() {
                   {new Date(t.timestamp).toLocaleTimeString()}
                 </span>
               </div>
-              <p style={{ color: 'var(--color-text-secondary)' }}>{t.content}</p>
+              <p className="whitespace-pre-wrap leading-relaxed mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t.content}</p>
             </div>
           ))
         )}

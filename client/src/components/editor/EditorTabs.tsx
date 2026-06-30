@@ -44,12 +44,12 @@ export default function EditorTabs() {
             {/* Dirty indicator */}
             {tab.isDirty && (
               <span
-                className="w-1.5 h-1.5 rounded-full shrink-0"
+                className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse"
                 style={{ backgroundColor: 'var(--color-accent-primary)' }}
               />
             )}
 
-            <span className="font-mono">{tab.name}</span>
+            <span className="font-mono text-[11px]" style={{ opacity: isActive ? 1 : 0.75 }}>{tab.name}</span>
 
             {/* Close button */}
             <span
@@ -57,9 +57,9 @@ export default function EditorTabs() {
                 e.stopPropagation();
                 closeTab(tab.id);
               }}
-              className="opacity-0 group-hover:opacity-100 ml-1 p-0.5 rounded transition-opacity duration-100 hover:bg-[var(--color-bg-hover)]"
+              className={`ml-1.5 p-0.5 rounded transition-all duration-150 hover:bg-[var(--color-bg-hover)] hover:text-white ${isActive ? 'opacity-70' : 'opacity-0 group-hover:opacity-70'}`}
             >
-              <X size={12} />
+              <X size={10} />
             </span>
           </button>
         );

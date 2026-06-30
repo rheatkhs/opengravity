@@ -133,8 +133,15 @@ export async function runAgentLoop(objective: string, abortSignal?: AbortSignal)
       }
 
       if (safetyGuard.isPaused) {
-        // Wait for resume — in a real impl, this would await a Promise
-        break;
+        await new Promise<void>((resolve) => {
+          store.setResumeHandler(() => {
+            safetyGuard.resume();
+            store.resetConsecutiveCommands();
+            store.setResumeHandler(null);
+            store.setStatus('running');
+            resolve();
+          });
+        });
       }
 
       // Prune context if needed
@@ -157,22 +164,23 @@ export async function runAgentLoop(objective: string, abortSignal?: AbortSignal)
         }
 
         if (chunk.type === 'tool-call') {
+          const toolCallChunk = chunk as any;
           // Check safety before executing
-          const canProceed = safetyGuard.checkTool(chunk.toolName);
+          const canProceed = safetyGuard.checkTool(toolCallChunk.toolName);
           const s = useAgentStore.getState();
           s.incrementStep();
 
-          if (chunk.toolName === 'execute_command') {
+          if (toolCallChunk.toolName === 'execute_command') {
             s.incrementConsecutiveCommands();
           } else {
             s.resetConsecutiveCommands();
           }
 
           const tcEntry: ToolCallEntry = {
-            id: chunk.toolCallId,
+            id: toolCallChunk.toolCallId,
             timestamp: Date.now(),
-            toolName: chunk.toolName,
-            args: chunk.args as Record<string, unknown>,
+            toolName: toolCallChunk.toolName,
+            args: toolCallChunk.args as Record<string, unknown>,
             status: canProceed ? 'running' : 'pending',
           };
           s.addToolCall(tcEntry);
@@ -199,8 +207,7 @@ export async function runAgentLoop(objective: string, abortSignal?: AbortSignal)
       const finishReason = await result.finishReason;
 
       if (finishReason === 'tool-calls') {
-        const toolCalls = await result.toolCalls;
-        const toolResults = await result.toolResults;
+        const toolResults = (await result.toolResults) as any[];
 
         // Update tool call statuses
         const s = useAgentStore.getState();
@@ -222,7 +229,7 @@ export async function runAgentLoop(objective: string, abortSignal?: AbortSignal)
             toolName: tr.toolName,
             result: tr.result,
           })),
-        });
+        } as any);
 
       } else {
         // Agent finished — no more tool calls

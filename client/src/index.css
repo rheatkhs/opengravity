@@ -142,28 +142,30 @@ body {
 }
 
 /* ─── Resizable Panel Handles ─── */
-[data-panel-group-direction="horizontal"] > [data-resize-handle-active],
-[data-panel-group-direction="horizontal"] > [data-resize-handle] {
-  width: 1px !important;
-  background: var(--color-border-subtle);
-  transition: background 150ms ease;
+[data-separator] {
+  background-color: var(--color-border-subtle);
+  transition: background-color 150ms ease;
+  position: relative;
+  z-index: 10;
 }
 
-[data-panel-group-direction="horizontal"] > [data-resize-handle]:hover,
-[data-panel-group-direction="horizontal"] > [data-resize-handle-active] {
-  background: var(--color-accent-primary) !important;
+[data-separator="active"],
+[data-separator]:hover,
+[data-separator]:focus-visible {
+  background-color: var(--color-accent-primary) !important;
+  outline: none;
 }
 
-[data-panel-group-direction="vertical"] > [data-resize-handle-active],
-[data-panel-group-direction="vertical"] > [data-resize-handle] {
-  height: 1px !important;
-  background: var(--color-border-subtle);
-  transition: background 150ms ease;
+/* Horizontal splitter (vertical drag bar) */
+[aria-orientation="vertical"] {
+  width: 4px !important;
+  cursor: col-resize;
 }
 
-[data-panel-group-direction="vertical"] > [data-resize-handle]:hover,
-[data-panel-group-direction="vertical"] > [data-resize-handle-active] {
-  background: var(--color-accent-primary) !important;
+/* Vertical splitter (horizontal drag bar) */
+[aria-orientation="horizontal"] {
+  height: 4px !important;
+  cursor: row-resize;
 }
 
 /* ─── Utility Animations ─── */

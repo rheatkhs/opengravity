@@ -12,6 +12,7 @@ import { json } from '@codemirror/lang-json';
 import { python } from '@codemirror/lang-python';
 import { markdown } from '@codemirror/lang-markdown';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { Cloud } from 'lucide-react';
 import { useEditorStore } from '../../stores/editor-store';
 import { writeFile } from '../../lib/fs-access';
 
@@ -140,11 +141,13 @@ export default function CodeEditor() {
   if (!activeTab) {
     return (
       <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-        <div className="text-center animate-fade-in">
-          <div className="text-4xl mb-4 opacity-20">◆</div>
-          <p className="text-[var(--color-text-muted)] text-sm">Open a file to start editing</p>
-          <p className="text-[var(--color-text-dimmed)] text-xs mt-2">
-            Use the file explorer on the left to browse your project
+        <div className="text-center animate-fade-in flex flex-col items-center">
+          <div className="mb-4 p-3 rounded-full opacity-20" style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-default)' }}>
+            <Cloud size={32} style={{ color: 'var(--color-accent-primary)' }} />
+          </div>
+          <p className="text-[var(--color-text-secondary)] text-sm font-medium">Open a file to start editing</p>
+          <p className="text-[var(--color-text-muted)] text-xs mt-1.5 max-w-[240px] leading-relaxed">
+            Use the file explorer in the left sidebar to open or browse files in your local workspace.
           </p>
         </div>
       </div>

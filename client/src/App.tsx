@@ -1,4 +1,5 @@
 import { Panel, Group, Separator } from 'react-resizable-panels';
+import { Cloud } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import EditorPane from './components/layout/EditorPane';
 import TerminalPane from './components/layout/TerminalPane';
@@ -11,7 +12,7 @@ export default function App() {
       <header className="flex items-center justify-between px-3 h-8 shrink-0 select-none"
         style={{ backgroundColor: 'var(--color-bg-surface)', borderBottom: '1px solid var(--color-border-subtle)' }}>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold" style={{ color: 'var(--color-accent-primary)' }}>◆</span>
+          <Cloud size={14} style={{ color: 'var(--color-accent-primary)' }} />
           <span className="text-[11px] font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
             OpenGravity
           </span>
