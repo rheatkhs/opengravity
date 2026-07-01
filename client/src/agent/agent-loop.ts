@@ -4,7 +4,7 @@
  * Emits events for UI updates (thoughts, tool calls, errors).
  */
 
-import { streamText, type ModelMessage } from 'ai';
+import { streamText, generateText, type ModelMessage } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createTools } from './tools.js';
@@ -54,6 +54,35 @@ function createModel(provider: AgentProvider, apiKey: string, model: string, bas
       });
       return custom(model);
     }
+  }
+}
+
+/**
+ * Tests the connection to the specified LLM provider.
+ */
+export async function testProviderConnection(
+  provider: AgentProvider,
+  apiKey: string,
+  model: string,
+  baseUrl?: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    if (provider !== 'ollama' && provider !== 'custom' && !apiKey) {
+      return { success: false, message: 'API key is required for this provider.' };
+    }
+    const modelInstance = createModel(provider, apiKey, model, baseUrl);
+    const response = await generateText({
+      model: modelInstance,
+      prompt: 'Respond only with "ok".',
+      maxOutputTokens: 5,
+    });
+    if (response.text) {
+      return { success: true, message: 'Connection successful!' };
+    }
+    return { success: false, message: 'Received empty response from the provider.' };
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    return { success: false, message: errMsg };
   }
 }
 
