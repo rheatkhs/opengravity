@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEditorStore } from '../../stores/editor-store';
+import FileIcon from '../sidebar/FileIcon';
 
 export default function EditorTabs() {
   const tabs = useEditorStore((s) => s.tabs);
@@ -11,8 +12,10 @@ export default function EditorTabs() {
 
   return (
     <div
-      className="flex items-center overflow-x-auto"
       style={{
+        display: 'flex',
+        alignItems: 'center',
+        overflowX: 'auto',
         backgroundColor: 'var(--color-bg-surface)',
         borderBottom: '1px solid var(--color-border-subtle)',
         height: '36px',
@@ -21,35 +24,71 @@ export default function EditorTabs() {
     >
       {tabs.map((tab) => {
         const isActive = tab.id === activeTabId;
+        const ext = tab.name.includes('.') ? tab.name.split('.').pop() || '' : '';
 
         return (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="group flex items-center gap-1.5 px-3 h-full whitespace-nowrap text-xs transition-colors duration-150 relative shrink-0"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              height: '100%',
+              whiteSpace: 'nowrap',
+              fontSize: '11.5px',
+              position: 'relative',
+              flexShrink: 0,
+              border: 'none',
+              cursor: 'pointer',
               color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               backgroundColor: isActive ? 'var(--color-bg-base)' : 'transparent',
               borderRight: '1px solid var(--color-border-subtle)',
+              transition: 'background-color 0.15s, color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
             }}
           >
             {/* Active indicator */}
             {isActive && (
               <div
-                className="absolute top-0 left-0 right-0 h-[2px]"
-                style={{ backgroundColor: 'var(--color-accent-primary)' }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '2px',
+                  backgroundColor: 'var(--color-accent-primary)',
+                }}
               />
             )}
 
             {/* Dirty indicator */}
             {tab.isDirty && (
               <span
-                className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse"
-                style={{ backgroundColor: 'var(--color-accent-primary)' }}
+                className="animate-pulse"
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  backgroundColor: 'var(--color-accent-primary)',
+                }}
               />
             )}
 
-            <span className="font-mono text-[11px]" style={{ opacity: isActive ? 1 : 0.75 }}>{tab.name}</span>
+            <FileIcon name={tab.name} extension={ext} kind="file" size={13} />
+            <span style={{
+              fontFamily: 'Consolas, Monaco, monospace',
+              fontSize: '11.5px',
+              opacity: isActive ? 1 : 0.75,
+            }}>{tab.name}</span>
 
             {/* Close button */}
             <span
@@ -57,7 +96,24 @@ export default function EditorTabs() {
                 e.stopPropagation();
                 closeTab(tab.id);
               }}
-              className={`ml-1.5 p-0.5 rounded transition-all duration-150 hover:bg-[var(--color-bg-hover)] hover:text-white ${isActive ? 'opacity-70' : 'opacity-0 group-hover:opacity-70'}`}
+              style={{
+                marginLeft: '6px',
+                padding: '2px',
+                borderRadius: '3px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: isActive ? 0.7 : 0.4,
+                transition: 'opacity 0.15s, background-color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = isActive ? '0.7' : '0.4';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <X size={10} />
             </span>

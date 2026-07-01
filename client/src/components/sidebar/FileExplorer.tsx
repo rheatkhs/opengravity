@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChevronRight, ChevronDown, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { useFileStore } from '../../stores/file-store';
 import { useEditorStore } from '../../stores/editor-store';
-import { openDirectory, listDirectory, readFile, getFileIcon, type FileNode } from '../../lib/fs-access';
+import { openDirectory, restoreDirectory, listDirectory, readFile, lastOpenedPath, type FileNode } from '../../lib/fs-access';
+import FileIcon from './FileIcon';
 
 function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
   const [isOpen, setIsOpen] = useState(depth < 1);
@@ -20,38 +21,100 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
   return (
     <div>
       <button onClick={handleClick}
-        className="flex items-center gap-1.5 w-full py-[4px] text-left text-xs hover:bg-[var(--color-bg-hover)] rounded-sm cursor-pointer transition-colors"
-        style={{ paddingLeft: `${depth * 12 + 8}px`, color: 'var(--color-text-secondary)' }}>
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          width: '100%',
+          paddingTop: '2px',
+          paddingBottom: '2px',
+          paddingLeft: `${depth * 16 + 4}px`,
+          paddingRight: '8px',
+          textAlign: 'left',
+          fontSize: '13px',
+          lineHeight: '22px',
+          color: 'var(--color-text-secondary)',
+          borderRadius: '3px',
+          cursor: 'pointer',
+          transition: 'background-color 0.1s',
+          border: 'none',
+          background: 'none',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+      >
         {node.kind === 'directory' ? (
-          <span className="flex items-center gap-1 shrink-0">
-            {isOpen ? <ChevronDown size={11} className="opacity-60" /> : <ChevronRight size={11} className="opacity-60" />}
-            <span className="text-[12px] opacity-80">📁</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            {isOpen
+              ? <ChevronDown size={10} style={{ opacity: 0.55 }} />
+              : <ChevronRight size={10} style={{ opacity: 0.55 }} />
+            }
+            <FileIcon name={node.name} kind="directory" isOpen={isOpen} size={15} />
           </span>
         ) : (
-          <span className="flex items-center gap-1 shrink-0">
-            <span className="w-3" />
-            <span className="text-[11px] opacity-90">{getFileIcon(node.extension || '')}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            <span style={{ width: '10px' }} />
+            <FileIcon name={node.name} extension={node.extension} kind="file" size={15} />
           </span>
         )}
-        <span className="truncate font-sans text-[11.5px]">{node.name}</span>
+        <span style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontFamily: 'inherit',
+          fontSize: '13px',
+        }}>{node.name}</span>
       </button>
-      {node.kind === 'directory' && isOpen && node.children?.map((c) => <FileTreeNode key={c.path} node={c} depth={depth + 1} />)}
+      {node.kind === 'directory' && isOpen && node.children?.map((c) =>
+        <FileTreeNode key={c.path} node={c} depth={depth + 1} />
+      )}
     </div>
   );
 }
 
 export default function FileExplorer() {
-  const { tree, rootName, isLoading, setRootHandle, setRootName, setTree, setLoading } = useFileStore();
+  const {
+    tree, rootName, isLoading,
+    setRootHandle, setRootName, setRootPath, setTree, setLoading,
+    saveSession, getSavedSession,
+  } = useFileStore();
+
+  // Auto-restore workspace from localStorage on mount
+  useEffect(() => {
+    const saved = getSavedSession();
+    if (saved && !rootName) {
+      (async () => {
+        setLoading(true);
+        try {
+          const handle = await restoreDirectory(saved.path);
+          if (handle) {
+            setRootHandle(handle);
+            setRootName(saved.name);
+            setRootPath(saved.path);
+            setTree(await listDirectory(handle));
+          }
+        } catch (e) {
+          console.warn('Failed to restore workspace session:', e);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenFolder = useCallback(async () => {
     setLoading(true);
     try {
       const handle = await openDirectory();
       if (!handle) { setLoading(false); return; }
-      setRootHandle(handle); setRootName(handle.name);
+      setRootHandle(handle);
+      setRootName(handle.name);
+      setRootPath(lastOpenedPath || handle.name);
       setTree(await listDirectory(handle));
+      // Persist session
+      saveSession();
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [setRootHandle, setRootName, setTree, setLoading]);
+  }, [setRootHandle, setRootName, setRootPath, setTree, setLoading, saveSession]);
 
   const handleRefresh = useCallback(async () => {
     const rh = useFileStore.getState().rootHandle;
@@ -61,41 +124,146 @@ export default function FileExplorer() {
   }, [setTree, setLoading]);
 
   return (
-    <div className="h-full flex flex-col select-none text-[11px]" style={{
-      paddingLeft: '12px',
-      paddingRight: '12px'
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      userSelect: 'none',
+      fontSize: '13px',
     }}>
-      <div className="flex items-center justify-between h-9 px-4 shrink-0">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Explorer</span>
-        <div className="flex items-center gap-1">
-          {rootName && (
-            <button onClick={handleRefresh} className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="Refresh">
-              <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
+      {/* Header - only shown when folder is not open */}
+      {!rootName && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '34px',
+          paddingLeft: '16px',
+          paddingRight: '8px',
+          flexShrink: 0,
+        }}>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--color-text-muted, #6b7280)',
+          }}>Explorer</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <button title="More Actions" style={{
+              padding: '4px',
+              borderRadius: '4px',
+              color: 'var(--color-text-muted, #6b7280)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'color 0.15s, background-color 0.15s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#d4d4d8'; e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <MoreHorizontal size={13} />
             </button>
-          )}
-          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="More Actions">
-            <MoreHorizontal size={12} />
-          </button>
+          </div>
         </div>
-      </div>
-      <div className="flex-1 flex flex-col justify-start p-4">
+      )}
+
+      {/* Tree content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {!rootName ? (
-          <div className="flex flex-col gap-3 py-4 select-none">
-            <p className="text-xs text-[var(--color-text-secondary)] text-center leading-relaxed">
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '20px 16px',
+          }}>
+            <p style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              textAlign: 'center',
+              lineHeight: 1.6,
+              margin: 0,
+            }}>
               You have not yet opened a workspace folder.
             </p>
-            <button onClick={handleOpenFolder}
-              className="w-full text-xs text-white bg-[#007acc] hover:bg-[#1f8ad2] rounded-[3px] transition-colors text-center cursor-pointer font-semibold shadow-sm" style={{
-                paddingTop: '8px',
-                paddingBottom: '8px'
-              }}>
+            <button onClick={handleOpenFolder} style={{
+              width: '100%',
+              fontSize: '12px',
+              color: '#fff',
+              backgroundColor: '#007acc',
+              border: 'none',
+              borderRadius: '3px',
+              padding: '7px 0',
+              cursor: 'pointer',
+              fontWeight: 600,
+              transition: 'background-color 0.15s',
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f8ad2'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007acc'}
+            >
               Open Folder
             </button>
           </div>
         ) : (
-          <div className="overflow-y-auto w-full">
-            <div className="py-1.5 px-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate mb-1 border-b border-[var(--color-border-subtle)]/30">
-              {rootName}
+          <div style={{ overflowY: 'auto', width: '100%', padding: '0 4px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: '34px',
+              paddingLeft: '12px',
+              paddingRight: '4px',
+              marginBottom: '4px',
+              borderBottom: '1px solid color-mix(in srgb, var(--color-border-subtle) 30%, transparent)',
+            }}>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-text-muted, #6b7280)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {rootName}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <button onClick={handleRefresh} title="Refresh" style={{
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: 'var(--color-text-muted, #6b7280)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.15s, background-color 0.15s',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#d4d4d8'; e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+                </button>
+                <button title="More Actions" style={{
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: 'var(--color-text-muted, #6b7280)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.15s, background-color 0.15s',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#d4d4d8'; e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <MoreHorizontal size={13} />
+                </button>
+              </div>
             </div>
             {tree.map((n) => <FileTreeNode key={n.path} node={n} />)}
           </div>

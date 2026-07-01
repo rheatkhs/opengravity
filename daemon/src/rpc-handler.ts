@@ -1,5 +1,63 @@
 import { PtyManager } from './pty-manager.js';
 import { log } from './utils.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+
+let activeWorkspaceRoot = process.cwd();
+if (path.basename(activeWorkspaceRoot) === 'daemon') {
+  activeWorkspaceRoot = path.dirname(activeWorkspaceRoot);
+}
+
+async function getFileTree(
+  dirPath: string,
+  parentRelativePath: string = '',
+  depth: number = 0,
+  maxDepth: number = 5
+): Promise<any[]> {
+  const entries: any[] = [];
+  if (depth > maxDepth) return entries;
+  
+  try {
+    const files = await fs.readdir(dirPath, { withFileTypes: true });
+    for (const file of files) {
+      if (file.name.startsWith('.') || file.name === 'node_modules' || file.name === '__pycache__') {
+        continue;
+      }
+      
+      const relativePath = parentRelativePath ? `${parentRelativePath}/${file.name}` : file.name;
+      const absolutePath = path.join(dirPath, file.name);
+      
+      if (file.isDirectory()) {
+        const children = await getFileTree(absolutePath, relativePath, depth + 1, maxDepth);
+        entries.push({
+          name: file.name,
+          path: relativePath,
+          kind: 'directory',
+          children,
+        });
+      } else {
+        const ext = file.name.includes('.') ? file.name.split('.').pop() || '' : '';
+        entries.push({
+          name: file.name,
+          path: relativePath,
+          kind: 'file',
+          extension: ext,
+        });
+      }
+    }
+  } catch (err) {
+    log('rpc', `Error reading dir ${dirPath}: ${(err as Error).message}`, 'error');
+  }
+  
+  entries.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  
+  return entries;
+}
 
 /**
  * JSON-RPC 2.0 Request shape.
@@ -85,6 +143,18 @@ export class RpcHandler {
             running: this.ptyManager.isRunning,
           });
 
+        case 'fs_open_directory':
+          return await this.handleFsOpenDirectory(id, params);
+
+        case 'fs_list_directory':
+          return await this.handleFsListDirectory(id, params);
+
+        case 'fs_read_file':
+          return await this.handleFsReadFile(id, params);
+
+        case 'fs_write_file':
+          return await this.handleFsWriteFile(id, params);
+
         case 'execute_command':
           return await this.handleExecuteCommand(id, params);
 
@@ -167,6 +237,147 @@ export class RpcHandler {
       id: id ?? 0,
       result,
     };
+  }
+
+  private async handleFsOpenDirectory(
+    id: string | number,
+    params?: Record<string, unknown>
+  ): Promise<JsonRpcResponse> {
+    // If an explicit path is provided, use it directly (no dialog)
+    if (params?.path && typeof params.path === 'string') {
+      activeWorkspaceRoot = path.resolve(params.path);
+      log('rpc', `Opened workspace directory (explicit): ${activeWorkspaceRoot}`);
+      return this.createResult(id, {
+        path: activeWorkspaceRoot,
+        name: path.basename(activeWorkspaceRoot),
+      });
+    }
+
+    // Launch native folder picker dialog via PowerShell
+    try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
+      const scriptPath = path.resolve(__dirname, '..', 'select_folder.ps1');
+
+      // Use inline PowerShell if the script file doesn't exist
+      let command: string;
+      try {
+        await fs.access(scriptPath);
+        command = `powershell -sta -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`;
+      } catch {
+        // Inline fallback — show a folder browser dialog
+        command = `powershell -sta -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.Form; $f.TopMost = $true; $f.ShowInTaskbar = $false; $f.WindowState = 'Minimized'; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Select Project Folder'; $d.RootFolder = 'MyComputer'; $d.ShowNewFolderButton = $false; if ($d.ShowDialog($f) -eq 'OK') { Write-Output $d.SelectedPath } else { Write-Output 'CANCEL' }; $f.Dispose()"`;
+      }
+
+      log('rpc', `Launching folder picker dialog...`);
+
+      // Use async exec wrapped in a Promise so we don't block the event loop
+      const result = await new Promise<string>((resolve, reject) => {
+        exec(command, {
+          encoding: 'utf8',
+          timeout: 120000, // 2 minutes to select
+          windowsHide: false,
+        }, (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout.trim());
+          }
+        });
+      });
+
+      if (!result || result === 'CANCEL') {
+        return this.createError(id, -32000, 'User cancelled folder selection');
+      }
+
+      // Validate the selected path exists
+      try {
+        const stat = await fs.stat(result);
+        if (!stat.isDirectory()) {
+          return this.createError(id, -32000, 'Selected path is not a directory');
+        }
+      } catch {
+        return this.createError(id, -32000, `Selected path does not exist: ${result}`);
+      }
+
+      activeWorkspaceRoot = result;
+      log('rpc', `Opened workspace directory: ${activeWorkspaceRoot}`);
+      return this.createResult(id, {
+        path: activeWorkspaceRoot,
+        name: path.basename(activeWorkspaceRoot),
+      });
+    } catch (err) {
+      const msg = (err as Error).message;
+      log('rpc', `Folder picker failed: ${msg}`, 'error');
+      return this.createError(id, INTERNAL_ERROR, `Folder picker failed: ${msg}`);
+    }
+  }
+
+  private async handleFsListDirectory(
+    id: string | number,
+    params?: Record<string, unknown>
+  ): Promise<JsonRpcResponse> {
+    const relativePath = typeof params?.path === 'string' ? params.path : '';
+    const targetDir = path.join(activeWorkspaceRoot, relativePath);
+    
+    const normalizedRoot = path.normalize(activeWorkspaceRoot).toLowerCase();
+    const normalizedTarget = path.normalize(targetDir).toLowerCase();
+    if (!normalizedTarget.startsWith(normalizedRoot)) {
+      return this.createError(id, INVALID_REQUEST, 'Path traversal detected');
+    }
+
+    const tree = await getFileTree(targetDir, relativePath, 0, 5);
+    return this.createResult(id, tree);
+  }
+
+  private async handleFsReadFile(
+    id: string | number,
+    params?: Record<string, unknown>
+  ): Promise<JsonRpcResponse> {
+    if (!params?.path || typeof params.path !== 'string') {
+      return this.createError(id, INVALID_REQUEST, 'Missing required param: path (string)');
+    }
+
+    const targetFile = path.join(activeWorkspaceRoot, params.path);
+    const normalizedRoot = path.normalize(activeWorkspaceRoot).toLowerCase();
+    const normalizedTarget = path.normalize(targetFile).toLowerCase();
+    if (!normalizedTarget.startsWith(normalizedRoot)) {
+      return this.createError(id, INVALID_REQUEST, 'Path traversal detected');
+    }
+
+    try {
+      const content = await fs.readFile(targetFile, 'utf8');
+      return this.createResult(id, { content });
+    } catch (err) {
+      return this.createError(id, INTERNAL_ERROR, `Failed to read file: ${(err as Error).message}`);
+    }
+  }
+
+  private async handleFsWriteFile(
+    id: string | number,
+    params?: Record<string, unknown>
+  ): Promise<JsonRpcResponse> {
+    if (!params?.path || typeof params.path !== 'string') {
+      return this.createError(id, INVALID_REQUEST, 'Missing required param: path (string)');
+    }
+    if (typeof params.content !== 'string') {
+      return this.createError(id, INVALID_REQUEST, 'Missing required param: content (string)');
+    }
+
+    const targetFile = path.join(activeWorkspaceRoot, params.path);
+    const normalizedRoot = path.normalize(activeWorkspaceRoot).toLowerCase();
+    const normalizedTarget = path.normalize(targetFile).toLowerCase();
+    if (!normalizedTarget.startsWith(normalizedRoot)) {
+      return this.createError(id, INVALID_REQUEST, 'Path traversal detected');
+    }
+
+    try {
+      await fs.mkdir(path.dirname(targetFile), { recursive: true });
+      await fs.writeFile(targetFile, params.content, 'utf8');
+      return this.createResult(id, { success: true });
+    } catch (err) {
+      return this.createError(id, INTERNAL_ERROR, `Failed to write file: ${(err as Error).message}`);
+    }
   }
 
   /**

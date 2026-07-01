@@ -104,15 +104,35 @@ export default function CodeEditor() {
       }),
       EditorView.theme({
         '&': {
-          backgroundColor: '#0a0a0f',
+          height: '100%',
+          backgroundColor: '#0e0e13',
+        },
+        '.cm-scroller': {
+          overflow: 'auto',
+          fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace",
         },
         '.cm-content': {
-          fontFamily: "'JetBrains Mono', monospace",
           fontSize: '13px',
           lineHeight: '1.6',
+          padding: '8px 0',
+        },
+        '.cm-gutters': {
+          backgroundColor: '#0e0e13',
+          borderRight: '1px solid var(--color-border-subtle)',
+          color: '#52525b',
+        },
+        '.cm-gutterElement': {
+          padding: '0 8px 0 12px',
+        },
+        '.cm-activeLine': {
+          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        },
+        '.cm-activeLineGutter': {
+          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+          color: '#a1a1aa',
         },
         '.cm-line': {
-          padding: '0 4px',
+          padding: '0 12px',
         },
       }),
     ];
@@ -148,7 +168,7 @@ export default function CodeEditor() {
         background: 'radial-gradient(circle at center, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
         userSelect: 'none'
       }}>
-        <div className="animate-fade-in" style={{
+        <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -218,5 +238,15 @@ export default function CodeEditor() {
     );
   }
 
-  return <div ref={containerRef} className="h-full w-full overflow-hidden" />;
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        height: '100%',
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: '#0e0e13',
+      }}
+    />
+  );
 }
