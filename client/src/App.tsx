@@ -8,7 +8,8 @@ import {
   Settings,
   Bell,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  GitPullRequest
 } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import EditorPane from './components/layout/EditorPane';
@@ -613,7 +614,38 @@ export default function App() {
 
           {/* Center Area: Title (Centered absolutely to avoid blocking clicks or layout stream) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 text-[11px] font-medium tracking-wide text-zinc-400 pointer-events-none select-none">
-            opengravity
+            rheatkhs/opengravity
+          </div>
+
+          {/* Right Area: GitHub Repo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <a
+              href="https://github.com/rheatkhs/opengravity"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '4px',
+                color: 'var(--color-text-secondary)',
+                textDecoration: 'none',
+                transition: 'background-color 0.1s, color 0.1s',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+            >
+              <GitPullRequest size={13} style={{ color: 'var(--color-accent-primary)' }} />
+              <span style={{ fontSize: '11px', fontWeight: 500 }}>Contribute to this project</span>
+            </a>
           </div>
         </div>
       </header>
@@ -712,7 +744,7 @@ export default function App() {
       {/* VS Code styled Status Bar (Teal / Blue footer) */}
       <footer className="h-6 select-none text-[11px] shrink-0 text-white px-4"
         style={{
-          backgroundColor: '#007acc',
+          backgroundColor: 'var(--color-accent-primary)',
           paddingLeft: '16px',
           paddingRight: '16px'
         }}>

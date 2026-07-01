@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, CheckCircle2, AlertTriangle, Settings, RefreshCw, Cpu, Link, Globe } from 'lucide-react';
+import { Key, CheckCircle2, AlertTriangle, RefreshCw, Cpu, Link, Globe } from 'lucide-react';
 import { useSettingsStore } from '../../stores/settings-store';
 import { PROVIDER_MODELS, type AgentProvider } from '../../types/agent';
 import { testProviderConnection } from '../../agent/agent-loop';
