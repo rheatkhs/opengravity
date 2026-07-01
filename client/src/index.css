@@ -126,10 +126,12 @@ body {
   height: 100%;
   font-family: var(--font-mono);
   font-size: 13px;
+  background-color: var(--color-bg-deep) !important;
 }
 
 .cm-editor .cm-scroller {
   font-family: var(--font-mono);
+  background-color: var(--color-bg-deep) !important;
 }
 
 .cm-editor.cm-focused {
@@ -138,7 +140,8 @@ body {
 
 .cm-gutters {
   border-right: 1px solid var(--color-border-subtle) !important;
-  background-color: var(--color-bg-surface) !important;
+  background-color: var(--color-bg-deep) !important;
+  color: var(--color-text-dimmed) !important;
 }
 
 /* ─── Resizable Panel Handles ─── */

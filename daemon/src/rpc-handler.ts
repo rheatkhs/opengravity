@@ -247,6 +247,11 @@ export class RpcHandler {
     if (params?.path && typeof params.path === 'string') {
       activeWorkspaceRoot = path.resolve(params.path);
       log('rpc', `Opened workspace directory (explicit): ${activeWorkspaceRoot}`);
+      try {
+        this.ptyManager.spawn({ cwd: activeWorkspaceRoot });
+      } catch (err) {
+        log('rpc', `Failed to spawn terminal in ${activeWorkspaceRoot}: ${(err as Error).message}`, 'error');
+      }
       return this.createResult(id, {
         path: activeWorkspaceRoot,
         name: path.basename(activeWorkspaceRoot),
@@ -302,6 +307,11 @@ export class RpcHandler {
 
       activeWorkspaceRoot = result;
       log('rpc', `Opened workspace directory: ${activeWorkspaceRoot}`);
+      try {
+        this.ptyManager.spawn({ cwd: activeWorkspaceRoot });
+      } catch (err) {
+        log('rpc', `Failed to spawn terminal in ${activeWorkspaceRoot}: ${(err as Error).message}`, 'error');
+      }
       return this.createResult(id, {
         path: activeWorkspaceRoot,
         name: path.basename(activeWorkspaceRoot),

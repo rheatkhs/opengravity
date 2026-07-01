@@ -105,7 +105,7 @@ export default function CodeEditor() {
       EditorView.theme({
         '&': {
           height: '100%',
-          backgroundColor: '#0e0e13',
+          backgroundColor: 'var(--color-bg-deep)',
         },
         '.cm-scroller': {
           overflow: 'auto',
@@ -117,7 +117,7 @@ export default function CodeEditor() {
           padding: '8px 0',
         },
         '.cm-gutters': {
-          backgroundColor: '#0e0e13',
+          backgroundColor: 'var(--color-bg-deep)',
           borderRight: '1px solid var(--color-border-subtle)',
           color: '#52525b',
         },
@@ -155,19 +155,26 @@ export default function CodeEditor() {
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (viewRef.current) {
+        viewRef.current.destroy();
+        viewRef.current = null;
+      }
     };
   }, [activeTab?.id]); // Only recreate on tab switch, not on every content change
 
   if (!activeTab) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        background: 'radial-gradient(circle at center, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
-        userSelect: 'none'
-      }}>
+      <div
+        key="editor-empty-placeholder"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          background: 'radial-gradient(circle at center, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
+          userSelect: 'none'
+        }}
+      >
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -240,12 +247,13 @@ export default function CodeEditor() {
 
   return (
     <div
+      key="editor-active-container"
       ref={containerRef}
       style={{
         height: '100%',
         width: '100%',
         overflow: 'hidden',
-        backgroundColor: '#0e0e13',
+        backgroundColor: 'var(--color-bg-deep)',
       }}
     />
   );

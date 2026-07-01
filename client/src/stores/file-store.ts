@@ -20,7 +20,7 @@ interface FileStore {
   setRootPath: (path: string) => void;
   setTree: (tree: FileNode[]) => void;
   setLoading: (loading: boolean) => void;
-  saveSession: () => void;
+  saveSession: (path?: string, name?: string) => void;
   getSavedSession: () => WorkspaceSession | null;
   clearSession: () => void;
   reset: () => void;
@@ -39,8 +39,9 @@ export const useFileStore = create<FileStore>((set, get) => ({
   setTree: (tree) => set({ tree }),
   setLoading: (loading) => set({ isLoading: loading }),
 
-  saveSession: () => {
-    const { rootName, rootPath } = get();
+  saveSession: (path?: string, name?: string) => {
+    const rootPath = path || get().rootPath;
+    const rootName = name || get().rootName;
     if (rootPath && rootName) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ path: rootPath, name: rootName }));

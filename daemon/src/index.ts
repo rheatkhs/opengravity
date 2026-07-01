@@ -22,15 +22,19 @@ async function main(): Promise<void> {
   log('main', `Default shell: ${getDefaultShell()}`);
 
   // Spawn the PTY process
+  let initialCwd = process.cwd();
+  if (initialCwd.endsWith('daemon') || initialCwd.endsWith('daemon/')) {
+    initialCwd = initialCwd.replace(/[/\\]daemon[/\\]?$/, '');
+  }
   ptyManager.spawn({
-    cwd: process.cwd(),
+    cwd: initialCwd,
   });
 
   // Handle PTY exit — auto-respawn
   ptyManager.on('exit', ({ exitCode, signal }) => {
     log('main', `PTY exited (code: ${exitCode}, signal: ${signal}). Respawning...`, 'warn');
     setTimeout(() => {
-      ptyManager.spawn({ cwd: process.cwd() });
+      ptyManager.spawn();
     }, 500);
   });
 

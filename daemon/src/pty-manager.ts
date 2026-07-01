@@ -32,10 +32,15 @@ export class PtyManager extends EventEmitter {
   private process: pty.IPty | null = null;
   private shell: string;
   private pendingCommand: PendingCommand | null = null;
+  public cwd: string = process.cwd();
 
   constructor() {
     super();
     this.shell = getDefaultShell();
+    // Normalize workspace cwd when running from daemon directory
+    if (this.cwd.endsWith('daemon') || this.cwd.endsWith('daemon/')) {
+      this.cwd = this.cwd.replace(/[/\\]daemon[/\\]?$/, '');
+    }
   }
 
   /**
@@ -44,23 +49,27 @@ export class PtyManager extends EventEmitter {
   spawn(options: PtyOptions = {}): void {
     const { cols = 120, rows = 30, cwd } = options;
 
+    if (cwd) {
+      this.cwd = cwd;
+    }
+
     if (this.process) {
       this.destroy();
     }
 
     const shellArgs = getShellArgs(this.shell);
-
-    this.process = pty.spawn(this.shell, shellArgs, {
+    const spawnedProcess = pty.spawn(this.shell, shellArgs, {
       name: 'xterm-256color',
       cols,
       rows,
-      cwd: cwd || getHomePath(),
+      cwd: this.cwd,
       env: getSafeEnv(),
     });
 
+    this.process = spawnedProcess;
     log('pty', `Spawned ${this.shell} (PID: ${this.process.pid}, ${cols}x${rows})`);
 
-    this.process.onData((data: string) => {
+    spawnedProcess.onData((data: string) => {
       // Check if we're capturing output for a discrete command
       if (this.pendingCommand) {
         this.handleCommandOutput(data);
@@ -70,10 +79,12 @@ export class PtyManager extends EventEmitter {
       this.emit('data', data);
     });
 
-    this.process.onExit(({ exitCode, signal }) => {
+    spawnedProcess.onExit(({ exitCode, signal }) => {
       log('pty', `Process exited (code: ${exitCode}, signal: ${signal})`, 'warn');
-      this.emit('exit', { exitCode, signal });
-      this.process = null;
+      if (this.process === spawnedProcess) {
+        this.emit('exit', { exitCode, signal });
+        this.process = null;
+      }
     });
   }
 

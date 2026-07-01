@@ -107,12 +107,14 @@ export default function FileExplorer() {
     try {
       const handle = await openDirectory();
       if (!handle) { setLoading(false); return; }
+      const pathValue = lastOpenedPath || handle.name;
+      const nameValue = handle.name;
       setRootHandle(handle);
-      setRootName(handle.name);
-      setRootPath(lastOpenedPath || handle.name);
+      setRootName(nameValue);
+      setRootPath(pathValue);
       setTree(await listDirectory(handle));
       // Persist session
-      saveSession();
+      saveSession(pathValue, nameValue);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [setRootHandle, setRootName, setRootPath, setTree, setLoading, saveSession]);
 
