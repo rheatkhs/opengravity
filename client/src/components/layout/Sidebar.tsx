@@ -9,46 +9,113 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab }: SidebarProps) {
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
-      <div className="flex-1 overflow-hidden">
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: 'var(--color-bg-surface)'
+    }}>
+      <div style={{
+        flex: 1,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         {activeTab === 'explorer' && <FileExplorer />}
 
         {activeTab === 'search' && (
-          <div className="h-full flex flex-col" style={{
-            paddingLeft: '12px',
-            paddingRight: '12px'
+          <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <div className="flex items-center justify-between h-9 px-4 shrink-0">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Search</span>
-              <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: '34px',
+              paddingLeft: '16px',
+              paddingRight: '8px',
+              flexShrink: 0,
+              borderBottom: '1px solid color-mix(in srgb, var(--color-border-subtle) 30%, transparent)'
+            }}>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-text-muted, #6b7280)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em'
+              }}>Search</span>
+              <button
+                style={{
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: 'var(--color-text-muted, #6b7280)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.15s, background-color 0.15s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#d4d4d8';
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
                 <MoreHorizontal size={13} />
               </button>
             </div>
-            <div className="p-4" style={{
+            <div style={{
+              padding: '12px 16px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px'
+              gap: '6px'
             }}>
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full text-xs rounded-[3px] border border-[var(--color-border-default)] bg-[var(--color-bg-base)] text-[var(--color-text-primary)]"
                 style={{
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  paddingLeft: '10px',
-                  paddingRight: '10px'
+                  width: '100%',
+                  fontSize: '12px',
+                  borderRadius: '3px',
+                  border: '1px solid var(--color-border-subtle)',
+                  backgroundColor: 'var(--color-bg-deep)',
+                  color: 'var(--color-text-primary)',
+                  padding: '5px 8px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
                 }}
               />
               <input
                 type="text"
                 placeholder="Replace"
-                className="w-full text-xs rounded-[3px] border border-[var(--color-border-default)] bg-[var(--color-bg-base)] text-[var(--color-text-primary)]"
                 style={{
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  paddingLeft: '10px',
-                  paddingRight: '10px'
+                  width: '100%',
+                  fontSize: '12px',
+                  borderRadius: '3px',
+                  border: '1px solid var(--color-border-subtle)',
+                  backgroundColor: 'var(--color-bg-deep)',
+                  color: 'var(--color-text-primary)',
+                  padding: '5px 8px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
                 }}
               />
             </div>
@@ -56,18 +123,63 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         )}
 
         {activeTab === 'git' && (
-          <div className="h-full flex flex-col" style={{
-            paddingLeft: '12px',
-            paddingRight: '12px'
+          <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <div className="flex items-center justify-between h-9 px-4 shrink-0">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Source Control</span>
-              <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: '34px',
+              paddingLeft: '16px',
+              paddingRight: '8px',
+              flexShrink: 0,
+              borderBottom: '1px solid color-mix(in srgb, var(--color-border-subtle) 30%, transparent)'
+            }}>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-text-muted, #6b7280)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em'
+              }}>Source Control</span>
+              <button
+                style={{
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: 'var(--color-text-muted, #6b7280)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.15s, background-color 0.15s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#d4d4d8';
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
                 <GitBranch size={13} />
               </button>
             </div>
-            <div className="p-6 text-center select-none">
-              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">No source control changes detected in this workspace.</p>
+            <div style={{
+              padding: '24px 16px',
+              textAlign: 'center',
+              userSelect: 'none'
+            }}>
+              <p style={{
+                fontSize: '11px',
+                color: 'var(--color-text-muted, #6b7280)',
+                lineHeight: '1.4',
+                margin: 0
+              }}>No source control changes detected in this workspace.</p>
             </div>
           </div>
         )}
@@ -78,3 +190,4 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     </div>
   );
 }
+

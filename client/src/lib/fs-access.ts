@@ -223,6 +223,34 @@ export function getFileIcon(extension: string): string {
   return iconMap[extension] || '📄';
 }
 
+/**
+ * Creates a new empty file in the workspace root.
+ */
+export async function createFile(filename: string): Promise<FileSystemFileHandle | null> {
+  if (!rootHandle) {
+    throw new Error('No workspace folder open');
+  }
+
+  if (useDaemonFS) {
+    await rpcClient.call('fs_write_file', { path: filename, content: '' });
+    return createMockFileHandle(filename.split('/').pop() || '', filename) as any;
+  } else {
+    const parts = filename.split('/').filter(Boolean);
+    let current: FileSystemDirectoryHandle = rootHandle;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      current = await current.getDirectoryHandle(parts[i], { create: true });
+    }
+
+    const handle = await current.getFileHandle(parts[parts.length - 1], { create: true });
+    const writable = await handle.createWritable();
+    await writable.write('');
+    await writable.close();
+    return handle;
+  }
+}
+
+
 function createMockDirectoryHandle(name: string, path: string) {
   return {
     kind: 'directory' as const,

@@ -20,34 +20,120 @@ export default function ThoughtLog() {
   };
 
   return (
-    <div className="h-full flex flex-col select-none text-[11px]" style={{
-      paddingLeft: '12px',
-      paddingRight: '12px'
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      userSelect: 'none'
     }}>
-      <div className="flex items-center justify-between h-9 px-4 shrink-0">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Thought Log</span>
-        <div className="flex items-center gap-1">
-          <button className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer" title="Clear">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '34px',
+        paddingLeft: '16px',
+        paddingRight: '8px',
+        flexShrink: 0,
+        borderBottom: '1px solid color-mix(in srgb, var(--color-border-subtle) 30%, transparent)'
+      }}>
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: 'var(--color-text-muted, #6b7280)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em'
+        }}>Thought Log</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <button
+            title="Clear"
+            style={{
+              padding: '4px',
+              borderRadius: '4px',
+              color: 'var(--color-text-muted, #6b7280)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'color 0.15s, background-color 0.15s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#d4d4d8';
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-muted, #6b7280)';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
             <RefreshCw size={12} />
           </button>
         </div>
       </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-2 space-y-1.5">
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}
+      >
         {thoughts.length === 0 ? (
-          <p className="text-[11px] text-center py-8" style={{ color: 'var(--color-text-dimmed)' }}>
+          <p style={{
+            fontSize: '11px',
+            textAlign: 'center',
+            padding: '32px 0',
+            margin: 0,
+            color: 'var(--color-text-dimmed)'
+          }}>
             Agent thoughts will appear here
           </p>
         ) : (
           thoughts.map((t) => (
-            <div key={t.id} className="text-[11px] p-2 rounded-md" style={{ backgroundColor: 'var(--color-bg-elevated)' }}>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: typeColors[t.type] || 'var(--color-text-muted)' }} />
-                <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: typeColors[t.type] }}>{t.type}</span>
-                <span className="text-[9px] ml-auto" style={{ color: 'var(--color-text-dimmed)' }}>
+            <div
+              key={t.id}
+              style={{
+                fontSize: '11px',
+                padding: '8px',
+                borderRadius: '4px',
+                backgroundColor: 'var(--color-bg-elevated)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  backgroundColor: typeColors[t.type] || 'var(--color-text-muted)'
+                }} />
+                <span style={{
+                  fontSize: '9px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  fontWeight: 600,
+                  color: typeColors[t.type]
+                }}>{t.type}</span>
+                <span style={{
+                  fontSize: '9px',
+                  color: 'var(--color-text-dimmed)',
+                  marginLeft: 'auto'
+                }}>
                   {new Date(t.timestamp).toLocaleTimeString()}
                 </span>
               </div>
-              <p className="whitespace-pre-wrap leading-relaxed mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t.content}</p>
+              <p style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: '1.4',
+                margin: 0,
+                color: 'var(--color-text-secondary)'
+              }}>{t.content}</p>
             </div>
           ))
         )}
@@ -55,3 +141,4 @@ export default function ThoughtLog() {
     </div>
   );
 }
+

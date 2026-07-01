@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Panel, Group, Separator } from 'react-resizable-panels';
 import {
   Folder,
@@ -15,12 +15,247 @@ import EditorPane from './components/layout/EditorPane';
 import TerminalPane from './components/layout/TerminalPane';
 import AgentPanel from './components/layout/AgentPanel';
 import { useEditorStore } from './stores/editor-store';
+import { useFileStore } from './stores/file-store';
+import { openDirectory, listDirectory, createFile, writeFile, lastOpenedPath } from './lib/fs-access';
+
+function FileMenuDropdown({
+  isOpen,
+  onClose,
+  onNewFile,
+  onOpenFolder,
+  onSaveFile
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onNewFile: () => void;
+  onOpenFolder: () => void;
+  onSaveFile: () => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: '30px',
+        zIndex: 9999,
+        width: '180px',
+        padding: '4px 0',
+        borderRadius: '5px',
+        border: '1px solid var(--color-border-subtle)',
+        backgroundColor: 'var(--color-bg-elevated)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <button
+        onClick={() => { onNewFile(); onClose(); }}
+        style={{
+          width: '100%',
+          height: '26px',
+          padding: '0 12px',
+          fontSize: '11px',
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: '#cccccc',
+          transition: 'background-color 0.1s, color 0.1s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          e.currentTarget.style.color = '#ffffff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#cccccc';
+        }}
+      >
+        <span>New File...</span>
+        <span style={{ fontSize: '9px', opacity: 0.4 }}>Ctrl+N</span>
+      </button>
+      <button
+        onClick={() => { onOpenFolder(); onClose(); }}
+        style={{
+          width: '100%',
+          height: '26px',
+          padding: '0 12px',
+          fontSize: '11px',
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: '#cccccc',
+          transition: 'background-color 0.1s, color 0.1s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          e.currentTarget.style.color = '#ffffff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#cccccc';
+        }}
+      >
+        <span>Open Folder...</span>
+        <span style={{ fontSize: '9px', opacity: 0.4 }}>Ctrl+O</span>
+      </button>
+      <div style={{ height: '1px', backgroundColor: 'var(--color-border-subtle)', margin: '4px 0' }} />
+      <button
+        onClick={() => { onSaveFile(); onClose(); }}
+        style={{
+          width: '100%',
+          height: '26px',
+          padding: '0 12px',
+          fontSize: '11px',
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: '#cccccc',
+          transition: 'background-color 0.1s, color 0.1s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          e.currentTarget.style.color = '#ffffff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#cccccc';
+        }}
+      >
+        <span>Save File</span>
+        <span style={{ fontSize: '9px', opacity: 0.4 }}>Ctrl+S</span>
+      </button>
+    </div>
+  );
+}
 
 export default function App() {
+
   const [activeTab, setActiveTab] = useState<string>('explorer');
   const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
   const [terminalVisible] = useState<boolean>(true);
   const [agentVisible] = useState<boolean>(true);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!activeMenu) return;
+    const handleOutsideClick = () => {
+      setActiveMenu(null);
+    };
+    const timeout = setTimeout(() => {
+      window.addEventListener('click', handleOutsideClick);
+    }, 0);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [activeMenu]);
+
+  // Open Folder Handler
+  const handleOpenFolder = async () => {
+    const { setRootHandle, setRootName, setRootPath, setTree, setLoading, saveSession } = useFileStore.getState();
+    setLoading(true);
+    try {
+      const handle = await openDirectory();
+      if (!handle) { setLoading(false); return; }
+      const pathValue = lastOpenedPath || handle.name;
+      const nameValue = handle.name;
+      setRootHandle(handle);
+      setRootName(nameValue);
+      setRootPath(pathValue);
+      setTree(await listDirectory(handle));
+      saveSession(pathValue, nameValue);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New File Handler
+  const handleNewFile = async () => {
+    const rh = useFileStore.getState().rootHandle;
+    if (!rh) {
+      alert('Please open a workspace folder first to create a file.');
+      return;
+    }
+
+    const filename = prompt('Enter new file name (e.g. index.html, src/app.js):');
+    if (!filename || !filename.trim()) return;
+
+    try {
+      const handle = await createFile(filename.trim());
+      if (handle) {
+        // Open the new file in a tab
+        useEditorStore.getState().openTab({
+          id: filename.trim(),
+          name: filename.trim().split('/').pop() || filename.trim(),
+          path: filename.trim(),
+          content: '',
+          handle,
+          language: ''
+        });
+
+        // Refresh the file tree
+        const tree = await listDirectory(rh);
+        useFileStore.getState().setTree(tree);
+      }
+    } catch (e) {
+      console.error('Failed to create file:', e);
+      alert(`Failed to create file: ${(e as Error).message}`);
+    }
+  };
+
+  // Save File Handler
+  const handleSaveFile = async () => {
+    const activeTab = useEditorStore.getState().getActiveTab();
+    if (!activeTab) return;
+    try {
+      await writeFile(activeTab.handle, activeTab.content);
+      useEditorStore.getState().markClean(activeTab.id);
+    } catch (e) {
+      console.error('Failed to save:', e);
+      alert(`Failed to save file: ${(e as Error).message}`);
+    }
+  };
+
+  // Listen for global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+N -> New File
+      if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        handleNewFile();
+      }
+      // Ctrl+S -> Save File
+      if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSaveFile();
+      }
+      // Ctrl+O -> Open Folder
+      if (e.ctrlKey && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        handleOpenFolder();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
 
   const openTabsCount = useEditorStore((s) => s.tabs.length);
 
@@ -59,22 +294,167 @@ export default function App() {
           {/* Left Area: Menu options */}
           <div className="flex items-center gap-0.5 h-full">
             {/* Desktop view menu items */}
-            <div className="hidden lg:flex items-center gap-5 h-full">
+            <div className="hidden lg:flex items-center h-full" style={{ gap: '4px' }}>
               {['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'].map((item) => (
-                <button key={item} className="px-2.5 h-[24px] flex items-center justify-center transition-colors hover:text-white cursor-pointer select-none shrink-0">
-                  {item}
-                </button>
+                item === 'File' ? (
+                  <div key={item} style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenu(activeMenu === 'File' ? null : 'File');
+                      }}
+                      style={{
+                        padding: '0 8px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        border: 'none',
+                        fontSize: '11.5px',
+                        fontFamily: 'inherit',
+                        transition: 'background-color 0.1s, color 0.1s',
+                        backgroundColor: activeMenu === 'File' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        color: activeMenu === 'File' ? '#ffffff' : '#cccccc',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeMenu !== 'File') {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#cccccc';
+                        }
+                      }}
+                    >
+                      File
+                    </button>
+                    <FileMenuDropdown
+                      isOpen={activeMenu === 'File'}
+                      onClose={() => setActiveMenu(null)}
+                      onNewFile={handleNewFile}
+                      onOpenFolder={handleOpenFolder}
+                      onSaveFile={handleSaveFile}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    key={item}
+                    style={{
+                      padding: '0 8px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      border: 'none',
+                      fontSize: '11.5px',
+                      fontFamily: 'inherit',
+                      transition: 'background-color 0.1s, color 0.1s',
+                      backgroundColor: 'transparent',
+                      color: '#cccccc',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#cccccc';
+                    }}
+                  >
+                    {item}
+                  </button>
+                )
               ))}
             </div>
 
             {/* Tablet view menu items */}
-            <div className="hidden sm:flex lg:hidden items-center gap-3 h-full">
+            <div className="hidden sm:flex lg:hidden items-center h-full" style={{ gap: '4px' }}>
               {['File', 'Edit', 'View', 'Terminal', 'Help'].map((item) => (
-                <button key={item} className="px-2.5 h-[24px] flex items-center justify-center transition-colors hover:text-white cursor-pointer select-none shrink-0">
-                  {item}
-                </button>
+                item === 'File' ? (
+                  <div key={item} style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenu(activeMenu === 'File' ? null : 'File');
+                      }}
+                      style={{
+                        padding: '0 8px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        border: 'none',
+                        fontSize: '11.5px',
+                        fontFamily: 'inherit',
+                        transition: 'background-color 0.1s, color 0.1s',
+                        backgroundColor: activeMenu === 'File' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        color: activeMenu === 'File' ? '#ffffff' : '#cccccc',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeMenu !== 'File') {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#cccccc';
+                        }
+                      }}
+                    >
+                      File
+                    </button>
+                    <FileMenuDropdown
+                      isOpen={activeMenu === 'File'}
+                      onClose={() => setActiveMenu(null)}
+                      onNewFile={handleNewFile}
+                      onOpenFolder={handleOpenFolder}
+                      onSaveFile={handleSaveFile}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    key={item}
+                    style={{
+                      padding: '0 8px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      border: 'none',
+                      fontSize: '11.5px',
+                      fontFamily: 'inherit',
+                      transition: 'background-color 0.1s, color 0.1s',
+                      backgroundColor: 'transparent',
+                      color: '#cccccc',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#cccccc';
+                    }}
+                  >
+                    {item}
+                  </button>
+                )
               ))}
             </div>
+
           </div>
 
           {/* Center Area: Title (Centered absolutely to avoid blocking clicks or layout stream) */}

@@ -19,6 +19,7 @@ export default function AgentConfig() {
     color: 'var(--color-text-primary)',
     borderRadius: '3px',
     outline: 'none',
+    boxSizing: 'border-box' as const,
   };
 
   const labelStyle = {
@@ -31,33 +32,74 @@ export default function AgentConfig() {
   };
 
   return (
-    <div className="h-full flex flex-col select-none text-[11px]" style={{
-      paddingLeft: '12px',
-      paddingRight: '12px'
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      userSelect: 'none'
     }}>
-      <div className="flex items-center justify-between h-9 px-4 shrink-0">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Agent Config</span>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '34px',
+        paddingLeft: '16px',
+        paddingRight: '8px',
+        flexShrink: 0,
+        borderBottom: '1px solid color-mix(in srgb, var(--color-border-subtle) 30%, transparent)'
+      }}>
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: 'var(--color-text-muted, #6b7280)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em'
+        }}>Agent Config</span>
       </div>
-      <div className="flex-1" style={{
+      <div style={{
+        flex: 1,
         overflowY: 'auto',
-        padding: '12px',
+        padding: '16px 12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '14px'
       }}>
         {/* Provider */}
         <div>
           <label style={labelStyle}>Provider</label>
-          <div className="relative w-full">
-            <select value={provider} onChange={(e) => { setProvider(e.target.value as AgentProvider); setModel(PROVIDER_MODELS[e.target.value as AgentProvider][0]); }}
-              className="appearance-none cursor-pointer" style={{ ...inputStyle, paddingRight: '28px' }}>
+          <div style={{ position: 'relative', width: '100%' }}>
+            <select
+              value={provider}
+              onChange={(e) => {
+                setProvider(e.target.value as AgentProvider);
+                setModel(PROVIDER_MODELS[e.target.value as AgentProvider][0]);
+              }}
+              style={{
+                ...inputStyle,
+                paddingRight: '28px',
+                cursor: 'pointer',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none'
+              }}
+            >
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
               <option value="openrouter">OpenRouter</option>
               <option value="ollama">Ollama (Local)</option>
               <option value="custom">Custom Provider</option>
             </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            <ChevronDown
+              size={12}
+              style={{
+                position: 'absolute',
+                right: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: 'var(--color-text-muted)'
+              }}
+            />
           </div>
         </div>
 
@@ -65,13 +107,45 @@ export default function AgentConfig() {
         {provider !== 'ollama' && (
           <div>
             <label style={labelStyle}>API Key</label>
-            <div className="relative">
-              <Key size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-dimmed)' }} />
-              <input type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)}
+            <div style={{ position: 'relative' }}>
+              <Key
+                size={12}
+                style={{
+                  position: 'absolute',
+                  left: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--color-text-dimmed)'
+                }}
+              />
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
                 placeholder={provider === 'openrouter' ? 'sk-or-...' : provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
-                className="font-mono" style={{ ...inputStyle, paddingLeft: '28px', paddingRight: '48px' }} />
-              <button onClick={() => setShowKey(!showKey)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] cursor-pointer"
-                style={{ color: 'var(--color-text-muted)', border: 'none', background: 'none' }}>{showKey ? 'Hide' : 'Show'}</button>
+                style={{
+                  ...inputStyle,
+                  fontFamily: 'monospace',
+                  paddingLeft: '28px',
+                  paddingRight: '48px'
+                }}
+              />
+              <button
+                onClick={() => setShowKey(!showKey)}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: '10px',
+                  cursor: 'pointer',
+                  color: 'var(--color-text-muted)',
+                  border: 'none',
+                  background: 'none'
+                }}
+              >
+                {showKey ? 'Hide' : 'Show'}
+              </button>
             </div>
           </div>
         )}
@@ -80,35 +154,79 @@ export default function AgentConfig() {
         {(provider === 'ollama' || provider === 'custom') && (
           <div>
             <label style={labelStyle}>Base URL</label>
-            <input type="text" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)}
+            <input
+              type="text"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
               placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'http://localhost:8000/v1'}
-              className="font-mono" style={inputStyle} />
+              style={{
+                ...inputStyle,
+                fontFamily: 'monospace'
+              }}
+            />
           </div>
         )}
 
         {/* Model */}
         <div>
           <label style={labelStyle}>Model</label>
-          <div className="relative">
+          <div style={{ position: 'relative' }}>
             {provider === 'custom' ? (
-              <input type="text" value={model} onChange={(e) => setModel(e.target.value)}
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
                 placeholder="e.g. mistral-medium"
-                className="font-mono" style={inputStyle} />
+                style={{
+                  ...inputStyle,
+                  fontFamily: 'monospace'
+                }}
+              />
             ) : (
-              <select value={model} onChange={(e) => setModel(e.target.value)} className="appearance-none cursor-pointer font-mono" style={{ ...inputStyle, paddingRight: '28px' }}>
-                {PROVIDER_MODELS[provider].map((m) => <option key={m} value={m}>{m}</option>)}
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                style={{
+                  ...inputStyle,
+                  fontFamily: 'monospace',
+                  paddingRight: '28px',
+                  cursor: 'pointer',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  appearance: 'none'
+                }}
+              >
+                {PROVIDER_MODELS[provider].map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
               </select>
             )}
             {provider !== 'custom' && (
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+              <ChevronDown
+                size={12}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: 'var(--color-text-muted)'
+                }}
+              />
             )}
           </div>
         </div>
 
         {/* Status */}
-        <div style={{ paddingTop: '8px', borderTop: '1px solid var(--color-border-subtle)' }}>
+        <div style={{ paddingTop: '12px', borderTop: '1px solid var(--color-border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, backgroundColor: apiKey || provider === 'ollama' || provider === 'custom' ? 'var(--color-success)' : 'var(--color-text-dimmed)' }} />
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              flexShrink: 0,
+              backgroundColor: apiKey || provider === 'ollama' || provider === 'custom' ? 'var(--color-success)' : 'var(--color-text-dimmed)'
+            }} />
             <span style={{ color: 'var(--color-text-muted)' }}>
               {apiKey || provider === 'ollama' || provider === 'custom' ? 'Ready' : 'Enter API key to start'}
             </span>
@@ -118,3 +236,4 @@ export default function AgentConfig() {
     </div>
   );
 }
+
