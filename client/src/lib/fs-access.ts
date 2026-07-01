@@ -112,19 +112,22 @@ export async function listDirectory(
 
   for await (const [name, handle] of dirHandle.entries()) {
     // Skip hidden files and common noise
-    if (name.startsWith('.') || name === 'node_modules' || name === '__pycache__') {
+    if (name.startsWith('.') || name === '__pycache__') {
       continue;
     }
 
     const path = parentPath ? `${parentPath}/${name}` : name;
 
     if (handle.kind === 'directory') {
-      const children = await listDirectory(
-        handle as FileSystemDirectoryHandle,
-        path,
-        depth + 1,
-        maxDepth
-      );
+      const shouldTraverse = name !== 'node_modules';
+      const children = (shouldTraverse && depth < maxDepth)
+        ? await listDirectory(
+            handle as FileSystemDirectoryHandle,
+            path,
+            depth + 1,
+            maxDepth
+          )
+        : [];
       entries.push({
         name,
         path,

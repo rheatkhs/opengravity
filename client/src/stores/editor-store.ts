@@ -13,6 +13,7 @@ export interface EditorTab {
 interface EditorStore {
   tabs: EditorTab[];
   activeTabId: string | null;
+  wordWrap: boolean;
 
   openTab: (tab: Omit<EditorTab, 'isDirty'>) => void;
   closeTab: (id: string) => void;
@@ -20,6 +21,7 @@ interface EditorStore {
   updateContent: (id: string, content: string) => void;
   markClean: (id: string) => void;
   getActiveTab: () => EditorTab | undefined;
+  toggleWordWrap: () => void;
 }
 
 function detectLanguage(filename: string): string {
@@ -44,6 +46,7 @@ function detectLanguage(filename: string): string {
 export const useEditorStore = create<EditorStore>((set, get) => ({
   tabs: [],
   activeTabId: null,
+  wordWrap: false,
 
   openTab: (tab) => {
     const existing = get().tabs.find((t) => t.path === tab.path);
@@ -100,4 +103,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const state = get();
     return state.tabs.find((t) => t.id === state.activeTabId);
   },
+
+  toggleWordWrap: () => set((state) => ({ wordWrap: !state.wordWrap })),
 }));

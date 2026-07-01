@@ -38,19 +38,28 @@ export default function CodeEditor() {
   });
   const updateContent = useEditorStore((s) => s.updateContent);
   const markClean = useEditorStore((s) => s.markClean);
+  const wordWrap = useEditorStore((s) => s.wordWrap);
+
+  // Sync activeTab to ref to prevent stale closure bugs
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
   // Debounced auto-save
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSave = useCallback(async () => {
-    if (!activeTab) return;
+    const tab = activeTabRef.current;
+    if (!tab || !viewRef.current) return;
     try {
-      await writeFile(activeTab.handle, activeTab.content);
-      markClean(activeTab.id);
+      const content = viewRef.current.state.doc.toString();
+      await writeFile(tab.handle, content);
+      markClean(tab.id);
     } catch (error) {
       console.error('Failed to save:', error);
     }
-  }, [activeTab, markClean]);
+  }, [markClean]);
 
   useEffect(() => {
     if (!containerRef.current || !activeTab) return;
@@ -93,7 +102,10 @@ export default function CodeEditor() {
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           const content = update.state.doc.toString();
-          updateContent(activeTab.id, content);
+          const tab = activeTabRef.current;
+          if (tab) {
+            updateContent(tab.id, content);
+          }
 
           // Debounced auto-save (2s)
           if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -141,6 +153,11 @@ export default function CodeEditor() {
     const langExt = getLanguageExtension(activeTab.language);
     if (langExt) extensions.push(langExt);
 
+    // Add word wrap extension if active
+    if (wordWrap) {
+      extensions.push(EditorView.lineWrapping);
+    }
+
     const state = EditorState.create({
       doc: activeTab.content,
       extensions,
@@ -160,7 +177,7 @@ export default function CodeEditor() {
         viewRef.current = null;
       }
     };
-  }, [activeTab?.id]); // Only recreate on tab switch, not on every content change
+  }, [activeTab?.id, wordWrap]); // Only recreate on tab switch, not on every content change
 
   if (!activeTab) {
     return (

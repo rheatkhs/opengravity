@@ -22,7 +22,7 @@ async function getFileTree(
   try {
     const files = await fs.readdir(dirPath, { withFileTypes: true });
     for (const file of files) {
-      if (file.name.startsWith('.') || file.name === 'node_modules' || file.name === '__pycache__') {
+      if (file.name.startsWith('.') || file.name === '__pycache__') {
         continue;
       }
       
@@ -30,7 +30,10 @@ async function getFileTree(
       const absolutePath = path.join(dirPath, file.name);
       
       if (file.isDirectory()) {
-        const children = await getFileTree(absolutePath, relativePath, depth + 1, maxDepth);
+        const shouldTraverse = file.name !== 'node_modules';
+        const children = (shouldTraverse && depth < maxDepth)
+          ? await getFileTree(absolutePath, relativePath, depth + 1, maxDepth)
+          : [];
         entries.push({
           name: file.name,
           path: relativePath,

@@ -142,6 +142,73 @@ function FileMenuDropdown({
   );
 }
 
+function ViewMenuDropdown({
+  isOpen,
+  onClose
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const wordWrap = useEditorStore((s) => s.wordWrap);
+  const toggleWordWrap = useEditorStore((s) => s.toggleWordWrap);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: '30px',
+        zIndex: 9999,
+        width: '180px',
+        padding: '4px 0',
+        borderRadius: '5px',
+        border: '1px solid var(--color-border-subtle)',
+        backgroundColor: 'var(--color-bg-elevated)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <button
+        onClick={() => { toggleWordWrap(); onClose(); }}
+        style={{
+          width: '100%',
+          height: '26px',
+          padding: '0 12px',
+          fontSize: '11px',
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: '#cccccc',
+          transition: 'background-color 0.1s, color 0.1s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          e.currentTarget.style.color = '#ffffff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#cccccc';
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '12px', display: 'inline-block', textAlign: 'center', fontWeight: 'bold' }}>
+            {wordWrap ? '✓' : ''}
+          </span>
+          Word Wrap
+        </span>
+        <span style={{ fontSize: '9px', opacity: 0.4 }}>Alt+Z</span>
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
 
   const [activeTab, setActiveTab] = useState<string>('explorer');
@@ -251,6 +318,11 @@ export default function App() {
         e.preventDefault();
         handleOpenFolder();
       }
+      // Alt+Z -> Toggle Word Wrap
+      if (e.altKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        useEditorStore.getState().toggleWordWrap();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -340,6 +412,47 @@ export default function App() {
                       onSaveFile={handleSaveFile}
                     />
                   </div>
+                ) : item === 'View' ? (
+                  <div key={item} style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenu(activeMenu === 'View' ? null : 'View');
+                      }}
+                      style={{
+                        padding: '0 8px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        border: 'none',
+                        fontSize: '11.5px',
+                        fontFamily: 'inherit',
+                        transition: 'background-color 0.1s, color 0.1s',
+                        backgroundColor: activeMenu === 'View' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        color: activeMenu === 'View' ? '#ffffff' : '#cccccc',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeMenu !== 'View') {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#cccccc';
+                        }
+                      }}
+                    >
+                      View
+                    </button>
+                    <ViewMenuDropdown
+                      isOpen={activeMenu === 'View'}
+                      onClose={() => setActiveMenu(null)}
+                    />
+                  </div>
                 ) : (
                   <button
                     key={item}
@@ -419,6 +532,47 @@ export default function App() {
                       onNewFile={handleNewFile}
                       onOpenFolder={handleOpenFolder}
                       onSaveFile={handleSaveFile}
+                    />
+                  </div>
+                ) : item === 'View' ? (
+                  <div key={item} style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenu(activeMenu === 'View' ? null : 'View');
+                      }}
+                      style={{
+                        padding: '0 8px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        border: 'none',
+                        fontSize: '11.5px',
+                        fontFamily: 'inherit',
+                        transition: 'background-color 0.1s, color 0.1s',
+                        backgroundColor: activeMenu === 'View' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        color: activeMenu === 'View' ? '#ffffff' : '#cccccc',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeMenu !== 'View') {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#cccccc';
+                        }
+                      }}
+                    >
+                      View
+                    </button>
+                    <ViewMenuDropdown
+                      isOpen={activeMenu === 'View'}
+                      onClose={() => setActiveMenu(null)}
                     />
                   </div>
                 ) : (

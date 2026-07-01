@@ -1,4 +1,4 @@
-# ◆ OpenGravity
+# OpenGravity
 
 A lightweight, BYOK (Bring Your Own Key) browser-based IDE with a live terminal, local file system sync, and an autonomous reasoning agent.
 

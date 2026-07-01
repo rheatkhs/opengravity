@@ -7,15 +7,44 @@ import FileIcon from './FileIcon';
 
 function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
   const [isOpen, setIsOpen] = useState(depth < 1);
+  const [localChildren, setLocalChildren] = useState<FileNode[]>(node.children || []);
+  const [hasLoaded, setHasLoaded] = useState(node.children && node.children.length > 0);
+  const [isLoading, setIsLoading] = useState(false);
   const openTab = useEditorStore((s) => s.openTab);
 
+  // Sync children when node.children changes (e.g. on full refresh)
+  useEffect(() => {
+    setLocalChildren(node.children || []);
+    setHasLoaded(node.children && node.children.length > 0);
+  }, [node.children]);
+
   const handleClick = async () => {
-    if (node.kind === 'directory') { setIsOpen(!isOpen); return; }
+    if (node.kind === 'directory') {
+      const nextOpen = !isOpen;
+      setIsOpen(nextOpen);
+
+      const isDeferredFolder = node.name === 'node_modules' || node.path.includes('/node_modules') || node.path.startsWith('node_modules/');
+      if (nextOpen && isDeferredFolder && !hasLoaded) {
+        setIsLoading(true);
+        try {
+          const loaded = await listDirectory(node.handle as FileSystemDirectoryHandle, node.path, 0, 1);
+          setLocalChildren(loaded);
+          setHasLoaded(true);
+        } catch (e) {
+          console.error('Failed to load subfolder:', e);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      return;
+    }
     try {
       const handle = node.handle as FileSystemFileHandle;
       const content = await readFile(handle);
       openTab({ id: node.path, name: node.name, path: node.path, content, handle, language: '' });
-    } catch (e) { console.error('Failed to open file:', e); }
+    } catch (e) {
+      console.error('Failed to open file:', e);
+    }
   };
 
   return (
@@ -65,8 +94,24 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
           fontSize: '13px',
         }}>{node.name}</span>
       </button>
-      {node.kind === 'directory' && isOpen && node.children?.map((c) =>
-        <FileTreeNode key={c.path} node={c} depth={depth + 1} />
+      {node.kind === 'directory' && isOpen && (
+        isLoading ? (
+          <div style={{
+            paddingLeft: `${(depth + 1) * 16 + 14}px`,
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
+            fontStyle: 'italic',
+            height: '20px',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            Loading...
+          </div>
+        ) : (
+          localChildren.map((c) => (
+            <FileTreeNode key={c.path} node={c} depth={depth + 1} />
+          ))
+        )
       )}
     </div>
   );
