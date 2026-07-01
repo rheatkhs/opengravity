@@ -359,6 +359,17 @@ export class RpcHandler {
     }
 
     try {
+      const ext = path.extname(targetFile).toLowerCase().replace('.', '');
+      const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'svg'];
+      
+      if (imageExtensions.includes(ext)) {
+        const buffer = await fs.readFile(targetFile);
+        const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'ico' ? 'image/x-icon' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+        const base64 = buffer.toString('base64');
+        const content = `data:${mime};base64,${base64}`;
+        return this.createResult(id, { content });
+      }
+
       const content = await fs.readFile(targetFile, 'utf8');
       return this.createResult(id, { content });
     } catch (err) {

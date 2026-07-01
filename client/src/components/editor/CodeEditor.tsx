@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, rectangularSelection } from '@codemirror/view';
 import { EditorState, type Extension } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
@@ -12,7 +12,7 @@ import { json } from '@codemirror/lang-json';
 import { python } from '@codemirror/lang-python';
 import { markdown } from '@codemirror/lang-markdown';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { Code2 } from 'lucide-react';
+import { Code2, ZoomIn, ZoomOut, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import { useEditorStore } from '../../stores/editor-store';
 import { writeFile } from '../../lib/fs-access';
 
@@ -39,6 +39,15 @@ export default function CodeEditor() {
   const updateContent = useEditorStore((s) => s.updateContent);
   const markClean = useEditorStore((s) => s.markClean);
   const wordWrap = useEditorStore((s) => s.wordWrap);
+
+  const [zoom, setZoom] = useState(100);
+  const [imgDetails, setImgDetails] = useState<{ width: number; height: number } | null>(null);
+
+  // Reset zoom & details when tab changes
+  useEffect(() => {
+    setZoom(100);
+    setImgDetails(null);
+  }, [activeTab?.id]);
 
   // Sync activeTab to ref to prevent stale closure bugs
   const activeTabRef = useRef(activeTab);
@@ -258,6 +267,156 @@ export default function CodeEditor() {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  const isImageTab = activeTab && (
+    activeTab.content.startsWith('data:image/') ||
+    ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'svg'].includes(activeTab.name.split('.').pop()?.toLowerCase() || '')
+  );
+
+  if (isImageTab && activeTab) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'var(--color-bg-deep)',
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
+        {/* Top Control Bar */}
+        <div style={{
+          height: '38px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          borderBottom: '1px solid var(--color-border-subtle)',
+          backgroundColor: 'var(--color-bg-surface)',
+          userSelect: 'none'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-primary)', fontWeight: 600 }}>
+            <ImageIcon size={14} style={{ color: 'var(--color-accent-primary)' }} />
+            <span>{activeTab.name}</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setZoom(Math.max(10, zoom - 10))}
+              title="Zoom Out"
+              className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                borderRadius: '3px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-dimmed)'
+              }}
+            >
+              <ZoomOut size={14} />
+            </button>
+            <span style={{ fontSize: '11px', fontFamily: 'monospace', minWidth: '36px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+              {zoom}%
+            </span>
+            <button
+              onClick={() => setZoom(Math.min(500, zoom + 10))}
+              title="Zoom In"
+              className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                borderRadius: '3px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-dimmed)'
+              }}
+            >
+              <ZoomIn size={14} />
+            </button>
+            <button
+              onClick={() => setZoom(100)}
+              title="Reset Zoom"
+              className="hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                borderRadius: '3px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-dimmed)'
+              }}
+            >
+              <RotateCcw size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Center Canvas Area with Checkered transparency background */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'auto',
+          padding: '24px',
+          backgroundImage: 'conic-gradient(rgba(255, 255, 255, 0.03) 25%, transparent 25% 50%, rgba(255, 255, 255, 0.03) 50% 75%, transparent 75%)',
+          backgroundSize: '16px 16px',
+          backgroundColor: 'var(--color-bg-deep)'
+        }}>
+          <img
+            src={activeTab.content}
+            alt={activeTab.name}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              setImgDetails({
+                width: img.naturalWidth,
+                height: img.naturalHeight
+              });
+            }}
+            style={{
+              maxWidth: 'none',
+              maxHeight: 'none',
+              width: `${zoom}%`,
+              height: 'auto',
+              objectFit: 'contain',
+              imageRendering: 'pixelated',
+              transition: 'width 0.15s ease-out, transform 0.15s ease-out',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid var(--color-border-subtle)'
+            }}
+          />
+        </div>
+
+        {/* Footer Meta Bar */}
+        {imgDetails && (
+          <div style={{
+            height: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            fontSize: '9.5px',
+            fontFamily: 'monospace',
+            backgroundColor: 'var(--color-bg-surface)',
+            borderTop: '1px solid var(--color-border-subtle)',
+            color: 'var(--color-text-muted)',
+            userSelect: 'none'
+          }}>
+            <span>Dimensions: {imgDetails.width} × {imgDetails.height} px</span>
+          </div>
+        )}
       </div>
     );
   }

@@ -165,6 +165,20 @@ export async function readFile(fileHandle: FileSystemFileHandle): Promise<string
     const res = await rpcClient.call<{ content: string }>('fs_read_file', { path: relativePath });
     return res.content;
   }
+  
+  const ext = fileHandle.name.split('.').pop()?.toLowerCase() || '';
+  const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'svg'];
+  
+  if (imageExtensions.includes(ext)) {
+    const file = await fileHandle.getFile();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+  
   const file = await fileHandle.getFile();
   return file.text();
 }
